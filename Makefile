@@ -43,6 +43,9 @@ UTILITIES = utilities/timingmod.o \
 MKCUT = mkcut/mkcutglobal.o \
 	mkcut/mkcut.o
 
+IGRID = igrid/igridglobal.o \
+	igrid/igrid.o
+
 OBJECTS_MKCUT = $(INCLUDE) \
 	$(IOMODULES) \
 	$(UTILITIES) \
@@ -59,11 +62,31 @@ OBJ_MKCUT = constants.o \
 	mkcutglobal.o \
 	mkcut.o
 
+OBJECTS_IGRID = $(INCLUDE) \
+	$(IOMODULES) \
+	$(UTILITIES) \
+	$(IOQC) \
+	$(IGRID)
+OBJ_IGRID = constants.o \
+	channels.o \
+	sysinfo.o \
+	timingmod.o \
+	iomod.o \
+	parsemod.o \
+	utils.o \
+	ioqc.o \
+	igridglobal.o \
+	igrid.o
+
 #-----------------------------------------------------------------------
 # Rules to create the program
 #-----------------------------------------------------------------------
 mkcut: $(OBJECTS_MKCUT)
 	$(F90) $(F90OPTS) $(OBJ_MKCUT) $(LIBS) -o bin/mkcut
+	rm -f *.o *~ *.mod 2>/dev/null
+
+igrid: $(OBJECTS_IGRID)
+	$(F90) $(F90OPTS) $(OBJ_IGRID) $(LIBS) -o bin/igrid
 	rm -f *.o *~ *.mod 2>/dev/null
 
 %.o: %.f90
