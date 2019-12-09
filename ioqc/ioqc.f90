@@ -66,7 +66,7 @@ contains
     return
 
   end subroutine freqtype
-
+  
 !######################################################################
 
   function isg98(filename) result(found)
@@ -665,6 +665,55 @@ contains
 
   end subroutine getxcoo_aoforce
 
+!######################################################################
+
+  subroutine getxcoo_dscf(xcoo,filename)
+
+    use constants
+    use sysinfo
+    use iomod
+    
+    implicit none
+
+    integer                                  :: unit,i,j
+    real(dp), dimension(ncoo), intent(inout) :: xcoo
+    character(len=*), intent(in)             :: filename
+    character(len=120)                       :: string
+
+!----------------------------------------------------------------------
+! Open file
+!----------------------------------------------------------------------
+    call freeunit(unit)
+    open(unit,file=filename,form='formatted',status='old')
+
+!----------------------------------------------------------------------
+! Read the Cartesian coordinates
+!----------------------------------------------------------------------
+    ! Read to the coordinates section
+5   read(unit,'(a)',end=999) string
+    if (index(string,'atomic coordinates').eq.0) goto 5
+
+    ! Parse the coordinates (in Bohr)
+    do i=1,natm
+       read(unit,'(x,3F14.8)') (xcoo(j),j=i*3-2,i*3)
+    enddo
+
+!----------------------------------------------------------------------
+! Close file
+!----------------------------------------------------------------------
+    close(unit)
+
+    return
+
+999 continue
+    errmsg='The Cartesian coordinates could not be found in: '&
+         //trim(filename)
+    call error_control
+    
+    return
+    
+  end subroutine getxcoo_dscf
+    
 !######################################################################
 
   subroutine uppercase(string)
@@ -1693,6 +1742,9 @@ contains
     else if (entyp.eq.6) then
        ! Columbus MRCI
        call geten_colmrci(v,nsta,filename)
+    else if (entyp.eq.7) then
+       ! Turbomole, dscf (ground state only)
+       call geten_dscf(v(1),filename)
     endif
     
     return
@@ -1819,13 +1871,55 @@ contains
     return
     
   end subroutine geten_colmrci
-  
+
+!######################################################################
+
+  subroutine geten_dscf(v,filename)
+
+    use constants
+    use iomod
+
+    implicit none
+
+    integer                      :: unit
+    real(dp)                     :: v
+    character(len=*), intent(in) :: filename
+    character(len=120)           :: string
+    
+!----------------------------------------------------------------------
+! Open the dscf output file
+!----------------------------------------------------------------------
+    call freeunit(unit)
+    open(unit,file=filename,form='formatted',status='old')
+
+!----------------------------------------------------------------------
+! Read the HF/DFT energy
+!----------------------------------------------------------------------
+5   read(unit,'(a)',end=999) string
+    if (index(string,'|  total energy').eq.0) goto 5
+
+    read(string,'(39x,F19.11)') v
+    
+!----------------------------------------------------------------------
+! Close the dscf output file
+!----------------------------------------------------------------------
+    close(unit)
+    
+    return
+
+999 continue
+    errmsg='The HF/DFT energy could not be found in: '//trim(filename)
+    call error_control
+    
+  end subroutine geten_dscf
+    
 !######################################################################
 ! entype: determines the quantum chemistry program used for the
 !         energy calculation, and sets entyp accordingly:
 !          
 !         entyp = 5 <-> DFT/MRCI
 !                 6 <-> Columbus MRCI
+!                 7 <-> Turbomole Hartree-Fock or DFT (dscf)
 !######################################################################
 
   subroutine entype(entyp,filename)
@@ -1853,6 +1947,9 @@ contains
     else if (iscolmrci(filename)) then
        ! Columbus MRCI
        entyp=6
+    else if (isdscf(filename)) then
+       ! Turbomole, dscf
+       entyp=7
     endif
     
 !----------------------------------------------------------------------
@@ -1952,6 +2049,80 @@ contains
     
   end function iscolmrci
 
+!######################################################################
+
+  function isdscf(filename) result(found)
+
+    use constants
+    use iomod
+
+    implicit none
+
+    integer            :: unit
+    character(len=*)   :: filename
+    character(len=120) :: string
+    logical            :: found
+
+!----------------------------------------------------------------------
+! Open file
+!----------------------------------------------------------------------
+    call freeunit(unit)
+    open(unit,file=filename,form='formatted',status='old')
+
+!----------------------------------------------------------------------
+! Check whether the calculation was performed using Turbomole dscf code
+!----------------------------------------------------------------------
+    found=.false.
+
+5   read(unit,'(a)',end=10) string
+    if (index(string,'d s c f - program').ne.0) then
+       found=.true.
+    else
+       goto 5
+    endif
+    
+10  continue
+    
+!----------------------------------------------------------------------
+! Close file
+!----------------------------------------------------------------------
+    close(unit)
+    
+    return
+
+  end function isdscf
+
+!######################################################################
+
+  subroutine getxcoo(filename,xcoo)
+
+    use constants
+    use sysinfo
+    use iomod
+        
+    implicit none
+
+    integer                                  :: ityp
+    real(dp), dimension(ncoo), intent(inout) :: xcoo
+    character(len=*), intent(in)             :: filename
+
+!----------------------------------------------------------------------
+! Get the file type
+!----------------------------------------------------------------------
+    call entype(ityp,filename)
+
+!----------------------------------------------------------------------
+! Read the Cartesian coordinates
+!----------------------------------------------------------------------
+    if (ityp.eq.7) then
+       ! Turbomole, dscf
+       call getxcoo_dscf(xcoo,filename)
+    endif
+    
+    return
+    
+  end subroutine getxcoo
+  
 !######################################################################
   
 end module ioqc

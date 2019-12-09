@@ -63,6 +63,18 @@ program igrid
 ! Read the names of the quantum chemistry output files
 !----------------------------------------------------------------------
   call rdqcfilenames
+
+!----------------------------------------------------------------------
+! Determine the quantum chemistry calculation type.
+! Note that we are assuming here that the same level of theory was
+! used for all points, but that we are not checking this...
+!----------------------------------------------------------------------
+  call entype(qctyp,qcfiles(1))
+
+!----------------------------------------------------------------------
+! Parse the quantum chemistry output files
+!----------------------------------------------------------------------
+  call parse_qcfiles
   
 contains
 
@@ -354,6 +366,187 @@ contains
     call error_control
     
   end subroutine rdqcfilenames_inpfile
+
+!######################################################################
+
+  subroutine parse_qcfiles
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use ioqc
+    use igridglobal
+    
+    implicit none
+
+!----------------------------------------------------------------------
+! First pass: determine the number of points along a normal
+! mode (npnts) and allocate arrays
+!----------------------------------------------------------------------
+    ! Get the numbers of grid points for each mode
+    call get_npnts
+
+    ! Maximum number of grid points
+    maxpnts=maxval(npnts)
+
+    ! Allocate arrays
+    allocate(pot(maxpnts,nmodes))
+    allocate(qgrid(maxpnts,nmodes))
+    allocate(dq(nmodes))
+
+!----------------------------------------------------------------------
+! Second pass: fill in the potential and normal mode displacement
+! arrays
+!----------------------------------------------------------------------
+    call get_grids
+    
+    return
+    
+  end subroutine parse_qcfiles
+
+!######################################################################
+
+  subroutine get_npnts
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use ioqc
+    use igridglobal
+    
+    implicit none
+
+    integer             :: i,n,ndisp,indx
+    real(dp)            :: q(nmodes)
+    real(dp)            :: x(ncoo)
+    real(dp), parameter :: thrsh=1e-5_dp
+    
+!----------------------------------------------------------------------
+! Allocate the npnts array
+!----------------------------------------------------------------------
+    allocate(npnts(nmodes))
+    npnts=0
+    
+!----------------------------------------------------------------------
+! Determine the number of points for each normal mode
+!----------------------------------------------------------------------
+    ! Loop over files
+    do i=1,nfiles
+
+       ! Read the Cartesian coordinates (in Bohr)
+       call getxcoo(qcfiles(i),x)
+
+       ! Calculate the normal mode coordinates
+       q=matmul(coonm,(x-xcoo0)/ang2bohr)
+
+       ! Determine the index of the displaced mode
+       ndisp=0
+       indx=0
+       do n=1,nmodes
+          if (abs(q(n)).gt.thrsh) then
+             ndisp=ndisp+1
+             indx=n
+          endif
+       enddo
+       
+       ! Exit if more than a single mode has been displaced
+       if (ndisp.gt.1) then
+          errmsg='More than 1 normal mode is displaced in ' &
+               //trim(qcfiles(i))
+          call error_control
+       endif
+
+       ! Update npnts for the displaced mode
+       npnts(indx)=npnts(indx)+1
+       
+    enddo
+
+    ! Include the Q0 reference point
+    npnts=npnts+1
+    
+!----------------------------------------------------------------------
+! Ouput some information to the log file
+!----------------------------------------------------------------------
+    write(ilog,'(/,20a)') ('-',i=1,20)
+    write(ilog,'(a)') ' Mode | Grid points'
+    write(ilog,'(20a)') ('-',i=1,20)
+
+    do n=1,nmodes
+       write(ilog,'(x,i3,2x,a,x,i4)') n,'|',npnts(n)
+    enddo
+    
+    write(ilog,'(20a)') ('-',i=1,20)
+    
+    return
+    
+  end subroutine get_npnts
+
+!######################################################################
+
+  subroutine get_grids
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use ioqc
+    use igridglobal
+    
+    implicit none
+
+    integer             :: i,n,indx
+    integer             :: icount(nmodes)
+    real(dp), parameter :: thrsh=1e-5_dp 
+    real(dp)            :: q(nmodes)
+    real(dp)            :: x(ncoo)
+    real(dp)            :: v(1)
+    
+!----------------------------------------------------------------------
+! Read the normal mode coordinate and potential values on the 1D grids
+!----------------------------------------------------------------------
+    ! Initialise the mode counter
+    icount=0
+    
+    ! Loop over files
+    do i=1,nfiles
+
+       ! Read the Cartesian coordinates (in Bohr)
+       call getxcoo(qcfiles(i),x)
+
+       ! Calculate the normal mode coordinates
+       q=matmul(coonm,(x-xcoo0)/ang2bohr)
+
+       ! Read the potential value
+       call geten(v,1,qcfiles(i))
+       
+       ! Determine the index of the displaced mode
+       indx=0
+       do n=1,nmodes
+          if (abs(q(n)).gt.thrsh) indx=n
+       enddo
+
+       ! Normal mode and potential value
+       if (indx.eq.0) then
+          ! Reference point (Q0): contributes to all grids
+          do n=1,nmodes
+             icount(n)=icount(n)+1
+             qgrid(icount(n),n)=0.0d0
+             pot(icount(n),n)=v(1)
+          enddo
+       else
+          ! Single displaced mode
+          icount(indx)=icount(indx)+1
+          qgrid(icount(indx),indx)=q(indx)
+          pot(icount(indx),indx)=v(1)
+       endif
+
+    enddo
+    
+    return
+    
+  end subroutine get_grids
     
 !######################################################################
   
