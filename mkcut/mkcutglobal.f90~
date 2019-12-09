@@ -1,0 +1,5 @@
+module mkcutglobal
+
+  implicit none
+  
+end module mkcutglobal
