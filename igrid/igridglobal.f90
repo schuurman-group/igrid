@@ -26,7 +26,9 @@ module igridglobal
   real(dp), allocatable           :: qgrid(:,:)
 
   ! Eigenpairs of the 1-mode Hamiltonians
+  integer, allocatable            :: eigindx(:)
   real(dp), allocatable           :: eigvec1d(:,:,:)
   real(dp), allocatable           :: eigval1d(:,:)
+  logical                         :: eiginp
   
 end module igridglobal

@@ -51,6 +51,12 @@ program igrid
   call getnmodes
 
 !----------------------------------------------------------------------
+! Now that we have the number of normal modes, we can parse the
+! eigenfunction indices in the input file
+!----------------------------------------------------------------------
+  call parse_initwf
+  
+!----------------------------------------------------------------------
 ! Read the normal modes, frequencies and symmetry labels
 !----------------------------------------------------------------------
   call getmodes
@@ -168,6 +174,9 @@ contains
     setfile=''
     lsetfile=.false.
 
+    ! Eigenfunction numbers to be read from the input file
+    eiginp=.false.
+    
 !----------------------------------------------------------------------
 ! Read the input file
 !----------------------------------------------------------------------
@@ -203,6 +212,14 @@ contains
              if (keyword(1).ne.'$end') goto 25
           endif
 
+       else if (keyword(i).eq.'$initwf') then
+          eiginp=.true.
+          ! Read to the end of the initwf section: this will
+          ! be parsed later once the number of normal modes
+          ! is known
+30        call rdinp(iin)
+          if (keyword(1).ne.'$end') goto 30
+          
        else
           ! Exit if the keyword is not recognised
           errmsg='Unknown keyword: '//trim(keyword(i))
@@ -237,6 +254,57 @@ contains
     
   end subroutine read_input_igrid
 
+!######################################################################
+
+  subroutine parse_initwf
+
+    use constants
+    use channels
+    use iomod
+    use parsemod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer :: n
+    
+!----------------------------------------------------------------------
+! Allocate arrays
+!----------------------------------------------------------------------
+    allocate(eigindx(nmodes))
+
+!----------------------------------------------------------------------
+! Default values: 1 <-> ground states of the 1D Hamiltonians
+!----------------------------------------------------------------------
+    eigindx=1
+
+!----------------------------------------------------------------------
+! If the initwf section was present in the input file, then parse it
+! here
+!----------------------------------------------------------------------
+    if (eiginp) then
+       
+       rewind(iin)
+
+       ! Read to the initwf section
+5      call rdinp(iin)
+       if (keyword(1).ne.'$initwf') goto 5
+
+       ! Read the user-specified 1-mode eigenstate indices
+10     call rdinp(iin)
+       if (keyword(1).ne.'$end') then
+          read(keyword(1),*) n
+          read(keyword(2),*) eigindx(n)
+          goto 10
+       endif
+       
+    endif
+    
+    return
+    
+  end subroutine parse_initwf
+  
 !######################################################################
 
   subroutine rdqcfilenames
@@ -386,6 +454,9 @@ contains
     
     implicit none
 
+    integer          :: n
+    character(len=3) :: an
+    
 !----------------------------------------------------------------------
 ! First pass: determine the number of points along a normal
 ! mode (npnts) and allocate arrays
@@ -399,7 +470,19 @@ contains
     ! Allocate arrays
     allocate(pot(maxpnts,nmodes))
     allocate(qgrid(maxpnts,nmodes))
-
+        
+!----------------------------------------------------------------------
+! Check to make sure that all grids have an odd number of points
+!----------------------------------------------------------------------
+    do n=1,nmodes
+       if (mod(npnts(n),2).eq.0) then
+          write(an,'(i3)') n
+          errmsg='Error: even number of grid points for mode '&
+               //trim(adjustl(an))
+          call error_control
+       endif
+    enddo
+    
 !----------------------------------------------------------------------
 ! Second pass: fill in the potential and normal mode displacement
 ! arrays

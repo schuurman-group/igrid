@@ -29,6 +29,11 @@ contains
     do n=1,nmodes
        call fgh1d(n)
     enddo
+
+!----------------------------------------------------------------------
+! Ouput the eigenvalues of the eigenstates of interest
+!----------------------------------------------------------------------
+    call wreigenvalues
     
     return
 
@@ -162,7 +167,56 @@ contains
     return
     
   end subroutine diag_hamiltonian
+
+!######################################################################
+
+  subroutine wreigenvalues
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
     
+    implicit none
+
+    integer  :: n,k,indx
+    real(dp) :: eharm,e
+
+!----------------------------------------------------------------------
+! Table header
+!----------------------------------------------------------------------
+    write(ilog,'(/,51a)') ('-',k=1,51)
+    write(ilog,'(a)') ' Mode | Eigenstate | Eigenvalue | &
+         Harmonic Approx.'
+    write(ilog,'(51a)') ('-',k=1,51)
+
+!----------------------------------------------------------------------
+! Eigenvalues
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! Index of the eigenstate for the current mode
+       indx=eigindx(n)
+
+       ! Harmonic approximation value
+       eharm=(indx-1+0.5d0)*freq(n)
+       
+       ! Actual value
+       e=eigval1d(indx,n)*eh2ev
+       
+       write(ilog,'(x,i3,2x,a,x,i2,9x,a,x,F6.4,x,a,2x,a,x,F6.4,x,a)') &
+            n,'|',indx,'|',e,'eV','|',eharm,'eV'
+            
+    enddo
+
+    write(ilog,'(51a)') ('-',k=1,51)
+    
+    return
+    
+  end subroutine wreigenvalues
+  
 !######################################################################
   
 end module eigenmod
