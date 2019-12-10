@@ -34,6 +34,11 @@ contains
 ! Ouput the eigenvalues of the eigenstates of interest
 !----------------------------------------------------------------------
     call wreigenvalues
+
+!----------------------------------------------------------------------
+! Ouput the eigenvectors for inspection
+!----------------------------------------------------------------------
+    call wrwfs
     
     return
 
@@ -216,6 +221,63 @@ contains
     return
     
   end subroutine wreigenvalues
+
+!######################################################################
+
+  subroutine wrwfs
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer           :: i,n,unit
+    character(len=60) :: filename
+    logical           :: found
+    
+!----------------------------------------------------------------------
+! Create or clean up the eigen directory
+!----------------------------------------------------------------------
+    ! Works with ifort
+    !inquire(directory='eigen',exist=found)
+
+    ! Works with gfortran
+    inquire(file='eigen/.',exist=found)
+
+    if (found) then
+       call system('rm -rf eigen/*')
+    else
+       call system('mkdir eigen')
+    endif
+
+!----------------------------------------------------------------------
+! Write the eigenfunction (WFs at the grid points) to file
+!----------------------------------------------------------------------
+    call freeunit(unit)
+    
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! Open the wf file
+       write(filename,'(a,i0,a,i0,a)') 'eigen/q',n,'_eig',eigindx(n),'.dat'
+       open(unit,file=filename,form='formatted',status='unknown')
+
+       ! Write the wf file
+       do i=1,npnts(n)
+          write(unit,*) qgrid(i,n),eigvec1d(i,eigindx(n),n)
+       enddo
+       
+       ! Close the wf file
+       close(unit)
+       
+    enddo
+    
+    return
+    
+  end subroutine wrwfs
   
 !######################################################################
   
