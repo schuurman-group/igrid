@@ -45,6 +45,8 @@ MKCUT = mkcut/mkcutglobal.o \
 
 IGRID = igrid/igridglobal.o \
 	igrid/eigen.o \
+	igrid/spline.o \
+	igrid/interpolation.o \
 	igrid/igrid.o
 
 OBJECTS_MKCUT = $(INCLUDE) \
@@ -78,6 +80,8 @@ OBJ_IGRID = constants.o \
 	ioqc.o \
 	eigen.o \
 	igridglobal.o \
+	spline.o \
+	interpolation.o \
 	igrid.o
 
 #-----------------------------------------------------------------------

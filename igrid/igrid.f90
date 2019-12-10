@@ -15,6 +15,7 @@ program igrid
 
   use ioqc
   use eigenmod
+  use interpolation
   use igridglobal
   
   implicit none
@@ -49,12 +50,6 @@ program igrid
 ! tensor and allocate associated arrays
 !----------------------------------------------------------------------
   call getnmodes
-
-!----------------------------------------------------------------------
-! Now that we have the number of normal modes, we can parse the
-! eigenfunction indices in the input file
-!----------------------------------------------------------------------
-  call parse_initwf
   
 !----------------------------------------------------------------------
 ! Read the normal modes, frequencies and symmetry labels
@@ -83,6 +78,16 @@ program igrid
 !----------------------------------------------------------------------
   call parse_qcfiles
 
+!----------------------------------------------------------------------
+! Parse the eigenfunction indices in the input file
+!----------------------------------------------------------------------
+  call parse_initwf
+  
+!----------------------------------------------------------------------
+! If necessary, interpolate the 1D potentials
+!----------------------------------------------------------------------
+  if (interpolate) call interpolate_potentials
+  
 !----------------------------------------------------------------------
 ! Calculate the eigenfunctions of the 1D Hamiltonians
 !----------------------------------------------------------------------
@@ -267,13 +272,15 @@ contains
     
     implicit none
 
-    integer :: n
+    integer          :: n
+    character(len=4) :: an
     
 !----------------------------------------------------------------------
 ! Allocate arrays
 !----------------------------------------------------------------------
     allocate(eigindx(nmodes))
-
+    allocate(ngrid(nmodes))
+    
 !----------------------------------------------------------------------
 ! Default values: 1 <-> ground states of the 1D Hamiltonians
 !----------------------------------------------------------------------
@@ -295,11 +302,36 @@ contains
 10     call rdinp(iin)
        if (keyword(1).ne.'$end') then
           read(keyword(1),*) n
-          read(keyword(2),*) eigindx(n)
+          read(keyword(2),*) ngrid(n)
+          read(keyword(3),*) eigindx(n)
           goto 10
        endif
        
     endif
+
+!----------------------------------------------------------------------
+! Check that the numbers of grid points are all odd
+!----------------------------------------------------------------------
+    do n=1,nmodes
+       if (mod(ngrid(n),2).eq.0) then
+          write(an,'(i4)') n
+          errmsg='Error: even number of grid points for mode '&
+               //trim(adjustl(an))
+          call error_control
+       endif
+    enddo
+
+!----------------------------------------------------------------------
+! Set the interpolate flag to true if the grids do not correspond to
+! those read from the QC output
+!----------------------------------------------------------------------
+    interpolate=.false.
+    do n=1,nmodes
+       if (ngrid(n).ne.npnts(n)) then
+          interpolate=.true.
+          exit
+       endif
+    enddo
     
     return
     

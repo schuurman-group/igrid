@@ -17,14 +17,15 @@ module igridglobal
   
   ! Dimensions
   integer                         :: maxpnts
-  integer, allocatable            :: npnts(:)
+  integer, allocatable            :: npnts(:),ngrid(:)
   
   ! Potential values
   real(dp), allocatable           :: pot(:,:)
   
   ! Normal mode coordinates
   real(dp), allocatable           :: qgrid(:,:)
-
+  logical                         :: interpolate
+  
   ! Eigenpairs of the 1-mode Hamiltonians
   integer, allocatable            :: eigindx(:)
   real(dp), allocatable           :: eigvec1d(:,:,:)
