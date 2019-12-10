@@ -24,6 +24,9 @@ module igridglobal
   
   ! Normal mode coordinates
   real(dp), allocatable           :: qgrid(:,:)
-  real(dp), allocatable           :: dq(:)
+
+  ! Eigenpairs of the 1-mode Hamiltonians
+  real(dp), allocatable           :: eigvec1d(:,:,:)
+  real(dp), allocatable           :: eigval1d(:,:)
   
 end module igridglobal

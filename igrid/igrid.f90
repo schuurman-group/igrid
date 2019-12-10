@@ -14,6 +14,7 @@
 program igrid
 
   use ioqc
+  use eigenmod
   use igridglobal
   
   implicit none
@@ -75,6 +76,11 @@ program igrid
 ! Parse the quantum chemistry output files
 !----------------------------------------------------------------------
   call parse_qcfiles
+
+!----------------------------------------------------------------------
+! Calculate the eigenfunctions of the 1D Hamiltonians
+!----------------------------------------------------------------------
+  call eigen1d
   
 contains
 
@@ -393,7 +399,6 @@ contains
     ! Allocate arrays
     allocate(pot(maxpnts,nmodes))
     allocate(qgrid(maxpnts,nmodes))
-    allocate(dq(nmodes))
 
 !----------------------------------------------------------------------
 ! Second pass: fill in the potential and normal mode displacement
@@ -492,16 +497,19 @@ contains
     use iomod
     use sysinfo
     use ioqc
+    use utils
     use igridglobal
     
     implicit none
 
     integer             :: i,n,indx
     integer             :: icount(nmodes)
+    integer             :: gindx(maxpnts)
     real(dp), parameter :: thrsh=1e-5_dp 
     real(dp)            :: q(nmodes)
     real(dp)            :: x(ncoo)
-    real(dp)            :: v(1)
+    real(dp)            :: v(1),v0 
+    real(dp)            :: swap(maxpnts)
     
 !----------------------------------------------------------------------
 ! Read the normal mode coordinate and potential values on the 1D grids
@@ -535,6 +543,7 @@ contains
              qgrid(icount(n),n)=0.0d0
              pot(icount(n),n)=v(1)
           enddo
+          v0=v(1)
        else
           ! Single displaced mode
           icount(indx)=icount(indx)+1
@@ -542,6 +551,37 @@ contains
           pot(icount(indx),indx)=v(1)
        endif
 
+    enddo
+
+!----------------------------------------------------------------------
+! Sort the grids
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! Sort the grid points in order of increasing coordinate
+       ! value
+       call dsortindxa1('A',npnts(n),qgrid(1:npnts(n),n),gindx)
+       
+       ! Sort the grid points
+       do i=1,npnts(n)
+          swap(i)=qgrid(gindx(i),n)
+       enddo
+       qgrid(1:npnts(n),n)=swap(1:npnts(n))
+
+       ! Sort the potential values
+       do i=1,npnts(n)
+          swap(i)=pot(gindx(i),n)
+       enddo
+       pot(1:npnts(n),n)=swap(1:npnts(n))
+       
+    enddo
+    
+!----------------------------------------------------------------------
+! Shift the potentials by V0
+!----------------------------------------------------------------------
+    do n=1,nmodes
+       pot(1:npnts(n),n)=pot(1:npnts(n),n)-v0
     enddo
     
     return

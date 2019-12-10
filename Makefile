@@ -44,6 +44,7 @@ MKCUT = mkcut/mkcutglobal.o \
 	mkcut/mkcut.o
 
 IGRID = igrid/igridglobal.o \
+	igrid/eigen.o \
 	igrid/igrid.o
 
 OBJECTS_MKCUT = $(INCLUDE) \
@@ -75,6 +76,7 @@ OBJ_IGRID = constants.o \
 	parsemod.o \
 	utils.o \
 	ioqc.o \
+	eigen.o \
 	igridglobal.o \
 	igrid.o
 
