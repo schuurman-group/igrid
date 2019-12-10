@@ -82,6 +82,11 @@ program igrid
 ! Parse the eigenfunction indices in the input file
 !----------------------------------------------------------------------
   call parse_initwf
+
+!----------------------------------------------------------------------
+! Output some information about the grids to the log file
+!----------------------------------------------------------------------
+  call wrgridinfo
   
 !----------------------------------------------------------------------
 ! If necessary, interpolate the 1D potentials
@@ -586,19 +591,6 @@ contains
     ! Include the Q0 reference point
     npnts=npnts+1
     
-!----------------------------------------------------------------------
-! Ouput some information to the log file
-!----------------------------------------------------------------------
-    write(ilog,'(/,20a)') ('-',i=1,20)
-    write(ilog,'(a)') ' Mode | Grid points'
-    write(ilog,'(20a)') ('-',i=1,20)
-
-    do n=1,nmodes
-       write(ilog,'(x,i3,2x,a,x,i4)') n,'|',npnts(n)
-    enddo
-    
-    write(ilog,'(20a)') ('-',i=1,20)
-    
     return
     
   end subroutine get_npnts
@@ -702,7 +694,39 @@ contains
     return
     
   end subroutine get_grids
+
+!######################################################################
+
+  subroutine wrgridinfo
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
     
+    implicit none
+
+    integer :: i,n
+    
+!----------------------------------------------------------------------
+! Ouput some grid information to the log file
+!----------------------------------------------------------------------
+    write(ilog,'(/,27a)') ('-',i=1,27)
+    write(ilog,'(a)') ' Mode | Ab initio | Grid'
+    write(ilog,'(a)') '      | points    | points'
+    write(ilog,'(27a)') ('-',i=1,27)
+
+    do n=1,nmodes
+       write(ilog,'(x,i3,2x,a,x,i4,6x,a,x,i4)') n,'|',npnts(n),'|',ngrid(n)
+    enddo
+    
+    write(ilog,'(27a)') ('-',i=1,27)
+    
+    return
+    
+  end subroutine wrgridinfo
+  
 !######################################################################
   
 end program igrid

@@ -39,6 +39,11 @@ contains
 ! Ouput the eigenvectors for inspection
 !----------------------------------------------------------------------
     call wrwfs
+
+!----------------------------------------------------------------------
+! Ouput the first and last grid populations
+!----------------------------------------------------------------------
+    call wrgridpop
     
     return
 
@@ -278,7 +283,42 @@ contains
     return
     
   end subroutine wrwfs
-  
+
+!######################################################################
+
+  subroutine wrgridpop
+
+    use constants
+    use channels
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer :: k,n
+
+!----------------------------------------------------------------------
+! Write the populations of the first and last grid points to the log
+! file
+!----------------------------------------------------------------------
+    write(ilog,'(/,34a)') ('-',k=1,34)
+    write(ilog,'(8x,a)') 'Grid Populations'
+    write(ilog,'(34a)') ('-',k=1,34)
+    write(ilog,'(a)') ' Mode |    First    |    Last'
+    write(ilog,'(34a)') ('-',k=1,34)
+
+    do n=1,nmodes
+       write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
+            n,'|',eigvec1d(1,eigindx(n),n),'|',&
+            eigvec1d(npnts(n),eigindx(n),n)
+    enddo
+    
+    write(ilog,'(34a)') ('-',k=1,34)
+    
+    return
+    
+  end subroutine wrgridpop
+    
 !######################################################################
   
 end module eigenmod
