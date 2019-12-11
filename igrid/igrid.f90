@@ -13,6 +13,7 @@
 
 program igrid
 
+  use channels
   use ioqc
   use eigenmod
   use interpolation
@@ -25,6 +26,11 @@ program igrid
 !----------------------------------------------------------------------
   call open_files_igrid
 
+!----------------------------------------------------------------------
+! Write the log file header
+!----------------------------------------------------------------------
+  call wrloghead
+  
 !----------------------------------------------------------------------
 ! Read the input file
 !----------------------------------------------------------------------
@@ -71,8 +77,10 @@ program igrid
 ! Note that we are assuming here that the same level of theory was
 ! used for all points, but that we are not checking this...
 !----------------------------------------------------------------------
-  call entype(qctyp,qcfiles(1))
-
+  call entype(qctyp,qcfiles(1)) 
+  write(ilog,'(/,a)') 'Quantum chemistry method: '&
+       //trim(entype_string(qctyp))
+  
 !----------------------------------------------------------------------
 ! Parse the quantum chemistry output files
 !----------------------------------------------------------------------
@@ -159,6 +167,29 @@ contains
     
   end subroutine open_files_igrid
 
+!######################################################################
+
+  subroutine wrloghead
+
+    use constants
+    use channels
+    use iomod
+    
+    implicit none
+
+    integer :: k
+
+    write(ilog,'(37a)') ('+',k=1,37)
+    write(ilog,'(14x,a)') 'i g r i d'
+    write(ilog,'(37a)') ('+',k=1,37)
+    write(ilog,'(8x,a)') 'phase space sampling'
+    write(ilog,'(1x,a)') 'using 1d hamiltonian eigenfunctions'
+    write(ilog,'(37a)') ('+',k=1,37)
+    
+    return
+    
+  end subroutine wrloghead
+    
 !######################################################################
 
   subroutine read_input_igrid

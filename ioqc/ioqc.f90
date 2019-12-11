@@ -2122,7 +2122,35 @@ contains
     return
     
   end subroutine getxcoo
-  
+
+!######################################################################
+
+  function entype_string(entyp) result(string)
+
+    use constants
+    
+    implicit none
+
+    integer            :: entyp
+    character(len=120) :: string
+
+    select case(entyp)
+
+    case(5) ! DFT/MRCI
+       string='DFT/MRCI'
+
+    case(6) ! Columbus MRCI
+       string='Columbus, MRCI'
+
+    case(7) ! Turbomole dscf
+       string= 'Turbomole, dscf'
+       
+    end select
+       
+    return
+        
+  end function entype_string
+    
 !######################################################################
   
 end module ioqc
