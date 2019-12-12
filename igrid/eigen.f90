@@ -31,6 +31,16 @@ contains
     enddo
 
 !----------------------------------------------------------------------
+! Get the grids in the momentum representation
+!----------------------------------------------------------------------
+    call get_momentum_grids
+
+!----------------------------------------------------------------------
+! Compute the 1D eigenstates in the momentum representation
+!----------------------------------------------------------------------
+    call eigen_momrep
+    
+!----------------------------------------------------------------------
 ! Ouput the eigenvalues of the eigenstates of interest
 !----------------------------------------------------------------------
     call wreigenvalues
@@ -178,6 +188,130 @@ contains
     
   end subroutine diag_hamiltonian
 
+!######################################################################
+
+    subroutine get_momentum_grids
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer  :: n,k,nk,ik
+    real(dp) :: dq
+    real(dp) :: dk(nmodes)
+
+!----------------------------------------------------------------------
+! Allocate arrays
+!----------------------------------------------------------------------
+    allocate(pgrid(maxpnts,nmodes))
+    pgrid=0.0d0
+    
+!----------------------------------------------------------------------
+! Loop over modes and construct the momentum representation grids for
+! each
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! Position grid spacing
+       dq=qgrid(2,n)-qgrid(1,n)
+
+       ! Momentum grid spacing
+       dk(n)=2.0d0*pi/(npnts(n)*dq)
+
+       ! Momentum grids
+       nk=(npnts(n)-1)/2
+       ik=0
+       do k=-nk,nk
+          ik=ik+1
+          pgrid(ik,n)=dk(n)*k
+       enddo
+       
+    enddo
+    
+    return
+    
+  end subroutine get_momentum_grids
+
+!######################################################################
+
+  subroutine eigen_momrep
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+
+    implicit none
+
+    integer              :: k,l,n,i,nk,il,np
+    real(dp)             :: dk,dq,qovrlp,povrlp
+    complex, allocatable :: F(:,:)
+    
+!----------------------------------------------------------------------
+! Allocate and initialise arrays
+!----------------------------------------------------------------------
+    allocate(peigvec1d(maxpnts,maxpnts,nmodes))
+    allocate(peigval1d(maxpnts,nmodes))
+    peigvec1d=czero
+    peigval1d=czero
+    
+!----------------------------------------------------------------------
+! Discrete Fourier transform of the position representation 1D
+! eigenfunctions to get the momentum representation eigenfunctions.
+! This, of course, would be faster to compute using an FFT, but our
+! grids are small enough to not care.
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! No. grid points for the current mode
+       np=npnts(n)
+
+       ! Momentum grid bounds
+       nk=(np-1)/2
+
+       ! Position grid spacing
+       dq=qgrid(2,n)-qgrid(1,n)
+       
+       ! Compute the transformation matrix F
+       allocate(F(np,np))
+       F=czero
+       do i=1,np
+          il=0
+          do l=-nk,nk
+             il=il+1
+             F(il,i)=exp(-ci*2.0d0*pi*i*l/(np-1))
+          enddo
+       enddo
+
+       ! Transform the position representation eigenvectors to the
+       ! momentum representation
+       do k=1,np
+          peigvec1d(:,k,n)=matmul(F,eigvec1d(:,k,n))
+       enddo
+
+       ! Include the dk factor in the momentum representation
+       ! eigenstates
+       do k=1,np
+          peigvec1d(:,k,n)=peigvec1d(:,k,n)&
+               /sqrt(dot_product(peigvec1d(:,k,n),peigvec1d(:,k,n)))
+       enddo
+       
+       ! Deallocate the transformation matrix F
+       deallocate(F)
+       
+    enddo
+
+    return
+    
+  end subroutine eigen_momrep
+  
 !######################################################################
 
   subroutine wreigenvalues

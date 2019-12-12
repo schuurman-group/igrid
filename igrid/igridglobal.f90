@@ -33,6 +33,8 @@ module igridglobal
   integer, allocatable            :: eigindx(:)
   real(dp), allocatable           :: eigvec1d(:,:,:)
   real(dp), allocatable           :: eigval1d(:,:)
+  complex(dp), allocatable        :: peigvec1d(:,:,:)
+  complex(dp), allocatable        :: peigval1d(:,:)
   logical                         :: eiginp
 
   ! Wigner distribution sampling
