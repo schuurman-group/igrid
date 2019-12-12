@@ -257,9 +257,7 @@ contains
 ! Allocate and initialise arrays
 !----------------------------------------------------------------------
     allocate(peigvec1d(maxpnts,maxpnts,nmodes))
-    allocate(peigval1d(maxpnts,nmodes))
     peigvec1d=czero
-    peigval1d=czero
     
 !----------------------------------------------------------------------
 ! Discrete Fourier transform of the position representation 1D
