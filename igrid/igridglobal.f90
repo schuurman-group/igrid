@@ -38,5 +38,7 @@ module igridglobal
 
   ! Wigner distribution sampling
   integer                         :: nsample
+  integer, allocatable            :: qbounds(:,:)
+  integer, allocatable            :: pbounds(:,:)
   
 end module igridglobal

@@ -108,6 +108,11 @@ program igrid
   call eigen1d
 
 !----------------------------------------------------------------------
+! Get the effective grids
+!----------------------------------------------------------------------
+  call effective_grids
+  
+!----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
   call sample_wigner
@@ -749,6 +754,96 @@ contains
     
   end subroutine get_grids
 
+!######################################################################
+
+  subroutine effective_grids
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer             :: n,i,i1,np
+    real(dp)            :: pop
+    real(dp), parameter :: thrsh=1e-6_dp
+    
+!----------------------------------------------------------------------
+! Allocate arrays
+!----------------------------------------------------------------------
+    allocate(qbounds(2,nmodes))
+    allocate(pbounds(2,nmodes))
+    qbounds=0
+    pbounds=0
+
+!----------------------------------------------------------------------
+! Initialisation
+!----------------------------------------------------------------------
+    do n=1,nmodes
+       np=npnts(n)
+       pbounds(1,n)=1
+       pbounds(2,n)=np
+       qbounds(1,n)=1
+       qbounds(2,n)=np
+    enddo
+    
+!----------------------------------------------------------------------
+! Determine the bounds of the effective grids that will be used in
+! the position and momentum sampling. Here, we will discard the grid
+! points at the edges for which the grid populations are vanishingly
+! small
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       np=npnts(n)
+       
+       ! Position grid: LHS grid points
+       do i=1,(np-1)/2
+          pop=eigvec1d(i,eigindx(n),n)**2
+          if (pop.ge.thrsh) then
+             qbounds(1,n)=i
+             exit
+          endif
+       enddo
+
+       ! Position grid: RHS grid points
+       do i1=1,(np-1)/2
+          i=np-i1+1
+          pop=eigvec1d(i,eigindx(n),n)**2
+          if (pop.ge.thrsh) then
+             qbounds(2,n)=i
+             exit
+          endif
+       enddo
+
+       ! Momentum grid: LHS grid points
+       do i=1,(np-1)/2
+          pop=conjg(peigvec1d(i,eigindx(n),n))*peigvec1d(i,eigindx(n),n)
+          if (pop.ge.thrsh) then
+             pbounds(1,n)=i
+             exit
+          endif
+       enddo
+
+       ! Momentum grid: RHS grid points
+       do i1=1,(np-1)/2
+          i=np-i1+1
+          pop=conjg(peigvec1d(i,eigindx(n),n))*peigvec1d(i,eigindx(n),n)
+          if (pop.ge.thrsh) then
+             pbounds(2,n)=i
+             exit
+          endif
+       enddo
+
+    enddo
+    
+    return
+    
+  end subroutine effective_grids
+    
 !######################################################################
 
   subroutine wrgridinfo
