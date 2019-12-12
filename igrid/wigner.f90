@@ -12,9 +12,14 @@ contains
     implicit none
 
 !----------------------------------------------------------------------
-! Get the quadrature points and weights
+! Get the quadrature points
 !----------------------------------------------------------------------
     call init_quadrature
+
+!----------------------------------------------------------------------
+! Sample the Wigner distribution
+!----------------------------------------------------------------------
+    call wigner_distribution
     
     return
     
@@ -97,9 +102,77 @@ contains
        
     enddo
 
+!----------------------------------------------------------------------
+! Deallocate arrays
+!----------------------------------------------------------------------
+    deallocate(ypp)
+    
     return
     
   end subroutine init_quadrature
+
+!######################################################################
+
+  subroutine wigner_distribution
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer            :: j,m,n
+    integer, parameter :: maxtry=100
+    real(dp)           :: q(nmodes),p(nmodes)
+    logical            :: ok
+    
+!----------------------------------------------------------------------
+! Sample the Wigner distribution
+!----------------------------------------------------------------------
+    ! Loop over samples    
+    do j=1,nsample
+
+       ok=.false.
+       do m=1,maxtry
+
+          ! Random position and momentum vectors
+          call qp_rand(q,p)
+          
+       enddo
+          
+    enddo
+    
+    return
+    
+  end subroutine wigner_distribution
+
+!######################################################################
+
+  subroutine qp_rand(q,p)
+
+    use constants
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer  :: n
+    real(dp) :: q(nmodes),p(nmodes)
+    real(dp) :: dq,dp
+    logical  :: ok
+
+    ! Loop over modes
+    do n=1,nmodes
+       
+       
+       
+    enddo
+    
+    return
+    
+  end subroutine qp_rand
   
 !######################################################################
   
