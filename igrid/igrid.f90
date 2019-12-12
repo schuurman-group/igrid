@@ -17,6 +17,7 @@ program igrid
   use ioqc
   use eigenmod
   use interpolation
+  use wigner
   use igridglobal
   
   implicit none
@@ -105,6 +106,11 @@ program igrid
 ! Calculate the eigenfunctions of the 1D Hamiltonians
 !----------------------------------------------------------------------
   call eigen1d
+
+!----------------------------------------------------------------------
+! Sample the Wigner distribution
+!----------------------------------------------------------------------
+  call sample_wigner
   
 contains
 
@@ -217,6 +223,9 @@ contains
 
     ! Eigenfunction numbers to be read from the input file
     eiginp=.false.
+
+    ! Number of initial conditions to be sampled
+    nsample=0
     
 !----------------------------------------------------------------------
 ! Read the input file
@@ -260,6 +269,14 @@ contains
           ! is known
 30        call rdinp(iin)
           if (keyword(1).ne.'$end') goto 30
+
+       else if (keyword(i).eq.'$nsample') then
+          if (keyword(i+1).eq.'=') then
+             i=i+2
+             read(keyword(i),*) nsample
+          else
+             goto 100
+          endif
           
        else
           ! Exit if the keyword is not recognised
@@ -288,6 +305,11 @@ contains
     if (freqfile.eq.'') then
        errmsg='The name of the frequency calculation file has not &
             been given'
+       call error_control
+    endif
+
+    if (nsample.eq.0) then
+       errmsg='The number of initial conditions has not been specified'
        call error_control
     endif
     

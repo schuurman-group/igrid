@@ -25,11 +25,17 @@ module igridglobal
   ! Normal mode coordinates
   real(dp), allocatable           :: qgrid(:,:)
   logical                         :: interpolate
+
+  ! Momentum grids
+  real(dp), allocatable           :: pgrid(:,:)
   
   ! Eigenpairs of the 1-mode Hamiltonians
   integer, allocatable            :: eigindx(:)
   real(dp), allocatable           :: eigvec1d(:,:,:)
   real(dp), allocatable           :: eigval1d(:,:)
   logical                         :: eiginp
+
+  ! Wigner distribution sampling
+  integer                         :: nsample
   
 end module igridglobal
