@@ -362,6 +362,7 @@ contains
           read(keyword(1),*) n
           read(keyword(2),*) ngrid(n)
           read(keyword(3),*) eigindx(n)
+          eigindx(n)=eigindx(n)+1
           goto 10
        endif
        

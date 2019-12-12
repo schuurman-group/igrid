@@ -348,8 +348,8 @@ contains
        ! Actual value
        e=eigval1d(indx,n)*eh2ev
        
-       write(ilog,'(x,i3,2x,a,x,i2,9x,a,x,F6.4,x,a,2x,a,x,F6.4,x,a)') &
-            n,'|',indx,'|',e,'eV','|',eharm,'eV'
+       write(ilog,'(x,i3,2x,a,4x,i2,6x,a,x,F6.4,x,a,2x,a,x,F6.4,x,a)') &
+            n,'|',indx-1,'|',e,'eV','|',eharm,'eV'
             
     enddo
 
@@ -427,22 +427,42 @@ contains
     
     implicit none
 
-    integer :: k,n
+    integer  :: k,n
+    real(dp) :: first,last
 
 !----------------------------------------------------------------------
-! Write the populations of the first and last grid points to the log
-! file
+! Position grids
 !----------------------------------------------------------------------
     write(ilog,'(/,34a)') ('-',k=1,34)
-    write(ilog,'(8x,a)') 'Grid Populations'
+    write(ilog,'(4x,a)') 'Position Grid Populations'
     write(ilog,'(34a)') ('-',k=1,34)
     write(ilog,'(a)') ' Mode |    First    |    Last'
     write(ilog,'(34a)') ('-',k=1,34)
 
     do n=1,nmodes
+       first=eigvec1d(1,eigindx(n),n)**2
+       last=eigvec1d(npnts(n),eigindx(n),n)**2
        write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
-            n,'|',eigvec1d(1,eigindx(n),n),'|',&
-            eigvec1d(npnts(n),eigindx(n),n)
+            n,'|',first,'|',last
+    enddo
+    
+    write(ilog,'(34a)') ('-',k=1,34)
+
+!----------------------------------------------------------------------
+! Momentum grids
+!----------------------------------------------------------------------
+    write(ilog,'(/,34a)') ('-',k=1,34)
+    write(ilog,'(4x,a)') 'Momentum Grid Populations'
+    write(ilog,'(34a)') ('-',k=1,34)
+    write(ilog,'(a)') ' Mode |    First    |    Last'
+    write(ilog,'(34a)') ('-',k=1,34)
+
+    do n=1,nmodes
+       first=conjg(peigvec1d(1,eigindx(n),n))*peigvec1d(1,eigindx(n),n)
+       last=conjg(peigvec1d(npnts(n),eigindx(n),n))&
+            *peigvec1d(npnts(n),eigindx(n),n)
+       write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
+            n,'|',first,'|',last
     enddo
     
     write(ilog,'(34a)') ('-',k=1,34)
