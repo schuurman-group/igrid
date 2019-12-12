@@ -40,5 +40,8 @@ module igridglobal
   integer                         :: nsample
   integer, allocatable            :: qbounds(:,:)
   integer, allocatable            :: pbounds(:,:)
+  integer                         :: nquad
+  real(dp), allocatable           :: qquad(:,:)
+  real(dp), allocatable           :: fquad(:,:)
   
 end module igridglobal
