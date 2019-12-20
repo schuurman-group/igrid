@@ -11,10 +11,12 @@ contains
 
     implicit none
 
-!----------------------------------------------------------------------
-! Get the quadrature points
-!----------------------------------------------------------------------
-    call init_quadrature
+!!----------------------------------------------------------------------
+!! Get the quadrature points
+!! *** We cannot do this yet: the quadrature points will vary with the
+!! sampled positions ***
+!!----------------------------------------------------------------------
+!    call init_quadrature
 
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
@@ -126,12 +128,13 @@ contains
     integer            :: j,m,n
     integer, parameter :: maxtry=100
     real(dp)           :: q(nmodes),p(nmodes)
+    real(dp)           :: fw
     logical            :: ok
     
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
-    ! Loop over samples    
+    ! Loop over samples
     do j=1,nsample
 
        ok=.false.
@@ -139,11 +142,17 @@ contains
 
           ! Random position and momentum vectors
           call qp_rand(q,p)
+
+          ! Calculate the Wigner distribution value at the
+          ! current point in phase space
+          call calc_wigner(q,p,fw)
+          
+          ! Accept or reject the current phase space vector
           
        enddo
           
     enddo
-    
+
     return
     
   end subroutine wigner_distribution
@@ -158,22 +167,98 @@ contains
     
     implicit none
 
-    integer  :: n
+    integer  :: n,i1,i2
     real(dp) :: q(nmodes),p(nmodes)
-    real(dp) :: dq,dp
+    real(dp) :: rand
     logical  :: ok
 
     ! Loop over modes
     do n=1,nmodes
-       
-       
+
+       ! Position
+       i1=qbounds(1,n)
+       i2=qbounds(2,n)
+       call random_number(rand)
+       q(n)=qgrid(i1,n)+rand*(qgrid(i2,n)-qgrid(i1,n))
+
+       ! Momentum
+       i1=pbounds(1,n)
+       i2=pbounds(2,n)
+       call random_number(rand)
+       p(n)=pgrid(i1,n)+rand*(pgrid(i2,n)-pgrid(i1,n))
        
     enddo
     
     return
     
   end subroutine qp_rand
-  
+
+!######################################################################
+
+  subroutine calc_wigner(q,p,fw)
+
+    use constants
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer  :: n
+    real(dp) :: q(nmodes),p(nmodes)
+    real(dp) :: fw,fw1mode
+
+    ! Initialisation
+    fw=1.0d0
+    
+    ! Loop over modes
+    do n=1,nmodes
+
+       ! Calculate the contribution from the current mode
+       call calc_wigner_1mode(n,q(n),p(n),fw1mode)
+       fw=fw*fw1mode
+       
+    enddo
+
+    ! Normalisation factor
+    ! ??? We need to figure out what this is ???
+    
+    return
+    
+  end subroutine calc_wigner
+
+!######################################################################
+
+  subroutine calc_wigner_1mode(n,q,p,fw1mode)
+
+    use constants
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer,  intent(in)    :: n
+    real(dp), intent(in)    :: q,p
+    real(dp), intent(inout) :: fw1mode
+    real(dp)                :: dq
+    real(dp)                :: qwf(maxpnts)
+    
+!----------------------------------------------------------------------
+! 'Un-normalise' the qgrid array to get the position representaion
+! wavefunction values at the grid points
+!----------------------------------------------------------------------
+    dq=qgrid(2,n)-qgrid(1,n)
+    qwf=eigvec1d(:,eigindx(n),n)/sqrt(dq)
+    
+    ! Do the same for the peigvec1d array to get the values of the
+    ! momentum representation wavefunction at the grid points
+    
+!    print*,"FINISH WRITING CALC_WIGNER_1MODE!"
+!    stop
+    
+    return
+    
+  end subroutine calc_wigner_1mode
+    
 !######################################################################
   
 end module wigner
