@@ -41,7 +41,7 @@ contains
     implicit none
 
     integer               :: n,i,indx,np
-    real(dp)              :: ds,q,dq
+    real(dp)              :: ds,q
     real(dp), allocatable :: ypp(:,:)
     real(dp)              :: ypval,yppval
     
@@ -88,17 +88,17 @@ contains
 
        np=npnts(n)
        indx=eigindx(n)
-       dq=qgrid(2,n)-qgrid(1,n)
-       
+              
        ! Calculate the 2nd derivatives at the knot points
        call spline_cubic_set(np,qgrid(1:np,n),&
-            eigvec1d(1:np,indx,n)/sqrt(dq),0,0.0d0,0,0.0d0,ypp(1:np,n))
+            eigvec1d(1:np,indx,n)/sqrt(dq(n)),0,0.0d0,0,0.0d0,&
+            ypp(1:np,n))
 
        ! Calculate the interpolated eigenfunction values at the
        ! quadrature points
        do i=1,nquad
           call spline_cubic_val(np,qgrid(1:np,n),&
-               eigvec1d(1:np,indx,n)/sqrt(dq),ypp(1:np,n),&
+               eigvec1d(1:np,indx,n)/sqrt(dq(n)),ypp(1:np,n),&
                qquad(i,n),fquad(i,n),ypval,yppval)
        enddo
        
@@ -239,21 +239,19 @@ contains
     integer,  intent(in)    :: n
     real(dp), intent(in)    :: q,p
     real(dp), intent(inout) :: fw1mode
-    real(dp)                :: dq
-    real(dp)                :: qwf(maxpnts)
-    
+
 !----------------------------------------------------------------------
-! 'Un-normalise' the qgrid array to get the position representaion
-! wavefunction values at the grid points
+! Compute the integral
+!
+! int_{-infty}^{+infty} exp(2*i*p*s) psi(q+s) psi(q-s) ds
+!
+! for the given values of q and p using the interpolated grid
+! representation of the position wavefunction psi(q).
+!
+! For now, we will just use trapazoidal rule quadrature with a
+! suitably large number of quadrature points. We can figure out a
+! better quadrature scheme later if this proves to be too slow.
 !----------------------------------------------------------------------
-    dq=qgrid(2,n)-qgrid(1,n)
-    qwf=eigvec1d(:,eigindx(n),n)/sqrt(dq)
-    
-    ! Do the same for the peigvec1d array to get the values of the
-    ! momentum representation wavefunction at the grid points
-    
-!    print*,"FINISH WRITING CALC_WIGNER_1MODE!"
-!    stop
     
     return
     

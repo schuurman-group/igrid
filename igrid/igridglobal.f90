@@ -24,10 +24,12 @@ module igridglobal
   
   ! Normal mode coordinates
   real(dp), allocatable           :: qgrid(:,:)
+  real(dp), allocatable           :: dq(:)
   logical                         :: interpolate
 
   ! Momentum grids
   real(dp), allocatable           :: pgrid(:,:)
+  real(dp), allocatable           :: dk(:)
   
   ! Eigenpairs of the 1-mode Hamiltonians
   integer, allocatable            :: eigindx(:)

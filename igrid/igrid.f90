@@ -101,6 +101,12 @@ program igrid
 ! If necessary, interpolate the 1D potentials
 !----------------------------------------------------------------------
   if (interpolate) call interpolate_potentials
+
+!----------------------------------------------------------------------
+! Fill in the grid spacing array, dQ, now that we have done with the
+! modification of the grids
+!----------------------------------------------------------------------
+  call get_dq
   
 !----------------------------------------------------------------------
 ! Calculate the eigenfunctions of the 1D Hamiltonians
@@ -754,6 +760,35 @@ contains
     
   end subroutine get_grids
 
+!######################################################################
+
+  subroutine get_dq
+
+    use constants
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer :: n
+
+!----------------------------------------------------------------------
+! Allocate the dq array
+!----------------------------------------------------------------------
+    allocate(dq(nmodes))
+    dq=0.0d0
+
+!----------------------------------------------------------------------
+! Fill in the dq array
+!----------------------------------------------------------------------
+    do n=1,nmodes
+       dq(n)=qgrid(2,n)-qgrid(1,n)
+    enddo
+    
+    return
+    
+  end subroutine get_dq
+    
 !######################################################################
 
   subroutine effective_grids

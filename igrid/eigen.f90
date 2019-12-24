@@ -108,7 +108,7 @@ contains
     integer                 :: i,j,l,n
     real(dp), intent(inout) :: hmat(dim,dim)
     real(dp)                :: Tl((dim-1)/2)
-    real(dp)                :: dQ,omega,ftmp
+    real(dp)                :: omega,ftmp
     
 !----------------------------------------------------------------------
 ! Initialisation
@@ -127,15 +127,12 @@ contains
 !----------------------------------------------------------------------
     n=(dim-1)/2
 
-    ! Coordinate grid spacing
-    dQ=qgrid(2,m)-qgrid(1,m)
-    
     ! Mode frequency
     omega=freq(m)/eh2ev
 
     ! Precalculation of the T_l terms
     do l=1,n
-       Tl(l)=2.0d0*omega*(pi*l/(dim*dQ))**2
+       Tl(l)=2.0d0*omega*(pi*l/(dim*dQ(m)))**2
     enddo
 
     ! Kinetic energy contribution
@@ -171,6 +168,8 @@ contains
     real(dp), intent(inout) :: hmat(dim,dim)
     real(dp)                :: work(3*dim)
 
+    real(dp) :: chk
+    
 !----------------------------------------------------------------------
 ! Diagonalise the Hamiltonian matrix
 !----------------------------------------------------------------------
@@ -184,6 +183,12 @@ contains
        call error_control
     endif
 
+!----------------------------------------------------------------------
+! Divide the eigenvectors by the grid spacing to get the values of the
+! position representation wavefunctions at the grid points
+!----------------------------------------------------------------------
+    eigvec1d(1:dim,1:dim,m)=eigvec1d(1:dim,1:dim,m)/dq(m)
+    
     return
     
   end subroutine diag_hamiltonian
@@ -201,14 +206,15 @@ contains
     implicit none
 
     integer  :: n,k,nk,ik
-    real(dp) :: dq
-    real(dp) :: dk(nmodes)
 
 !----------------------------------------------------------------------
 ! Allocate arrays
 !----------------------------------------------------------------------
     allocate(pgrid(maxpnts,nmodes))
     pgrid=0.0d0
+
+    allocate(dk(nmodes))
+    dk=0.0d0
     
 !----------------------------------------------------------------------
 ! Loop over modes and construct the momentum representation grids for
@@ -217,11 +223,8 @@ contains
     ! Loop over modes
     do n=1,nmodes
 
-       ! Position grid spacing
-       dq=qgrid(2,n)-qgrid(1,n)
-
        ! Momentum grid spacing
-       dk(n)=2.0d0*pi/(npnts(n)*dq)
+       dk(n)=2.0d0*pi/(npnts(n)*dq(n))
 
        ! Momentum grids
        nk=(npnts(n)-1)/2
@@ -250,7 +253,7 @@ contains
     implicit none
 
     integer              :: k,l,n,i,nk,il,np
-    real(dp)             :: dk,dq,qovrlp,povrlp
+    real(dp)             :: qovrlp,povrlp
     complex, allocatable :: F(:,:)
     
 !----------------------------------------------------------------------
@@ -274,9 +277,6 @@ contains
        ! Momentum grid bounds
        nk=(np-1)/2
 
-       ! Position grid spacing
-       dq=qgrid(2,n)-qgrid(1,n)
-       
        ! Compute the transformation matrix F
        allocate(F(np,np))
        F=czero
@@ -294,12 +294,12 @@ contains
           peigvec1d(:,k,n)=matmul(F,eigvec1d(:,k,n))
        enddo
 
-       ! Include the dk factor in the momentum representation
-       ! eigenstates
-       do k=1,np
-          peigvec1d(:,k,n)=peigvec1d(:,k,n)&
-               /sqrt(dot_product(peigvec1d(:,k,n),peigvec1d(:,k,n)))
-       enddo
+!       ! Include the dk factor in the momentum representation
+!       ! eigenstates
+!       do k=1,np
+!          peigvec1d(:,k,n)=peigvec1d(:,k,n)&
+!               /sqrt(dot_product(peigvec1d(:,k,n),peigvec1d(:,k,n)))
+!       enddo
        
        ! Deallocate the transformation matrix F
        deallocate(F)
