@@ -184,10 +184,11 @@ contains
     endif
 
 !----------------------------------------------------------------------
-! Divide the eigenvectors by the grid spacing to get the values of the
-! position representation wavefunctions at the grid points
+! Divide the eigenvectors by the square root of the grid spacing to
+! get the values of the position representation wavefunctions at the
+! grid points
 !----------------------------------------------------------------------
-    eigvec1d(1:dim,1:dim,m)=eigvec1d(1:dim,1:dim,m)/dq(m)
+    eigvec1d(1:dim,1:dim,m)=eigvec1d(1:dim,1:dim,m)/sqrt(dq(m))
     
     return
     
