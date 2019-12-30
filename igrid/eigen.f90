@@ -39,6 +39,12 @@ contains
 ! Compute the 1D eigenstates in the momentum representation
 !----------------------------------------------------------------------
     call eigen_momrep
+
+!----------------------------------------------------------------------
+! Calculate the position and momentum expectation values and
+! variances
+!----------------------------------------------------------------------
+    call properties
     
 !----------------------------------------------------------------------
 ! Ouput the eigenvalues of the eigenstates of interest
@@ -310,7 +316,118 @@ contains
     return
     
   end subroutine eigen_momrep
-  
+
+!######################################################################
+
+  subroutine properties
+
+    use constants
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer  :: n,i,indx
+    real(dp) :: numer,denom,q2,p2
+    
+!----------------------------------------------------------------------
+! Allocate arrays
+!----------------------------------------------------------------------
+    allocate(qexp(nmodes))
+    allocate(qvar(nmodes))
+    allocate(pexp(nmodes))
+    allocate(pvar(nmodes))
+    qexp=0.0d0
+    qvar=0.0d0
+    pexp=0.0d0
+    pvar=0.0d0
+    
+!----------------------------------------------------------------------
+! Position expectation values <q>
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       indx=eigindx(n)
+       
+       ! Calculate <q>
+       numer=0.0d0
+       denom=0.0d0
+       do i=1,npnts(n)
+          numer=numer+qgrid(i,n)*eigvec1d(i,indx,n)**2
+          denom=denom+eigvec1d(i,indx,n)**2
+       enddo
+       qexp(n)=numer/denom
+
+    enddo
+
+!----------------------------------------------------------------------
+! Position variances <dq> = <q^2> - <q>^2
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       indx=eigindx(n)
+
+       ! Calculate <q^2>
+       numer=0.0d0
+       denom=0.0d0
+       do i=1,npnts(n)
+          numer=numer+qgrid(i,n)**2*eigvec1d(i,indx,n)**2
+          denom=denom+eigvec1d(i,indx,n)**2
+       enddo
+       q2=numer/denom
+
+       ! Calculate <dq>
+       qvar(n)=q2-qexp(n)**2
+
+    enddo
+
+!----------------------------------------------------------------------
+! Momentum expectation values <p>
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       indx=eigindx(n)
+       
+       ! Calculate <q>
+       numer=0.0d0
+       denom=0.0d0
+       do i=1,npnts(n)
+          numer=numer+pgrid(i,n)*peigvec1d(i,indx,n)**2
+          denom=denom+peigvec1d(i,indx,n)**2
+       enddo
+       pexp(n)=numer/denom
+
+    enddo
+
+!----------------------------------------------------------------------
+! Momentum variances <dp> = <p^2> - <p>^2
+!----------------------------------------------------------------------
+    ! Loop over modes
+    do n=1,nmodes
+
+       indx=eigindx(n)
+
+       ! Calculate <q^2>
+       numer=0.0d0
+       denom=0.0d0
+       do i=1,npnts(n)
+          numer=numer+pgrid(i,n)**2*peigvec1d(i,indx,n)**2
+          denom=denom+peigvec1d(i,indx,n)**2
+       enddo
+       p2=numer/denom
+
+       ! Calculate <dq>
+       pvar(n)=p2-pexp(n)**2
+
+    enddo
+    
+    return
+    
+  end subroutine properties
+    
 !######################################################################
 
   subroutine wreigenvalues
@@ -400,7 +517,8 @@ contains
     do n=1,nmodes
 
        ! Open the wf file
-       write(filename,'(a,i0,a,i0,a)') 'eigen/q',n,'_eig',eigindx(n),'.dat'
+       write(filename,'(a,i0,a,i0,a)') 'eigen/q',n,'_eig',&
+            eigindx(n)-1,'.dat'
        open(unit,file=filename,form='formatted',status='unknown')
 
        ! Write the wf file
@@ -441,8 +559,8 @@ contains
     write(ilog,'(34a)') ('-',k=1,34)
 
     do n=1,nmodes
-       first=eigvec1d(1,eigindx(n),n)**2
-       last=eigvec1d(npnts(n),eigindx(n),n)**2
+       first=abs(eigvec1d(1,eigindx(n),n))
+       last=abs(eigvec1d(npnts(n),eigindx(n),n))
        write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
             n,'|',first,'|',last
     enddo
@@ -459,9 +577,8 @@ contains
     write(ilog,'(34a)') ('-',k=1,34)
 
     do n=1,nmodes
-       first=conjg(peigvec1d(1,eigindx(n),n))*peigvec1d(1,eigindx(n),n)
-       last=conjg(peigvec1d(npnts(n),eigindx(n),n))&
-            *peigvec1d(npnts(n),eigindx(n),n)
+       first=abs(peigvec1d(1,eigindx(n),n))
+       last=abs(peigvec1d(npnts(n),eigindx(n),n))
        write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
             n,'|',first,'|',last
     enddo

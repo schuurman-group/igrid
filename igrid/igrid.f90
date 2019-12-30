@@ -112,16 +112,16 @@ program igrid
 ! Calculate the eigenfunctions of the 1D Hamiltonians
 !----------------------------------------------------------------------
   call eigen1d
-
-!----------------------------------------------------------------------
-! Get the effective grids
-!----------------------------------------------------------------------
-  call effective_grids
   
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
   call sample_wigner
+
+!----------------------------------------------------------------------
+! Output the sampled positions and moments
+!----------------------------------------------------------------------
+  call wrqp
   
 contains
 
@@ -791,96 +791,6 @@ contains
     
 !######################################################################
 
-  subroutine effective_grids
-
-    use constants
-    use channels
-    use iomod
-    use sysinfo
-    use igridglobal
-    
-    implicit none
-
-    integer             :: n,i,i1,np
-    real(dp)            :: pop
-    real(dp), parameter :: thrsh=1e-6_dp
-    
-!----------------------------------------------------------------------
-! Allocate arrays
-!----------------------------------------------------------------------
-    allocate(qbounds(2,nmodes))
-    allocate(pbounds(2,nmodes))
-    qbounds=0
-    pbounds=0
-
-!----------------------------------------------------------------------
-! Initialisation
-!----------------------------------------------------------------------
-    do n=1,nmodes
-       np=npnts(n)
-       pbounds(1,n)=1
-       pbounds(2,n)=np
-       qbounds(1,n)=1
-       qbounds(2,n)=np
-    enddo
-    
-!----------------------------------------------------------------------
-! Determine the bounds of the effective grids that will be used in
-! the position and momentum sampling. Here, we will discard the grid
-! points at the edges for which the grid populations are vanishingly
-! small
-!----------------------------------------------------------------------
-    ! Loop over modes
-    do n=1,nmodes
-
-       np=npnts(n)
-       
-       ! Position grid: LHS grid points
-       do i=1,(np-1)/2
-          pop=eigvec1d(i,eigindx(n),n)**2
-          if (pop.ge.thrsh) then
-             qbounds(1,n)=i
-             exit
-          endif
-       enddo
-
-       ! Position grid: RHS grid points
-       do i1=1,(np-1)/2
-          i=np-i1+1
-          pop=eigvec1d(i,eigindx(n),n)**2
-          if (pop.ge.thrsh) then
-             qbounds(2,n)=i
-             exit
-          endif
-       enddo
-
-       ! Momentum grid: LHS grid points
-       do i=1,(np-1)/2
-          pop=conjg(peigvec1d(i,eigindx(n),n))*peigvec1d(i,eigindx(n),n)
-          if (pop.ge.thrsh) then
-             pbounds(1,n)=i
-             exit
-          endif
-       enddo
-
-       ! Momentum grid: RHS grid points
-       do i1=1,(np-1)/2
-          i=np-i1+1
-          pop=conjg(peigvec1d(i,eigindx(n),n))*peigvec1d(i,eigindx(n),n)
-          if (pop.ge.thrsh) then
-             pbounds(2,n)=i
-             exit
-          endif
-       enddo
-
-    enddo
-    
-    return
-    
-  end subroutine effective_grids
-    
-!######################################################################
-
   subroutine wrgridinfo
 
     use constants
@@ -910,6 +820,73 @@ contains
     return
     
   end subroutine wrgridinfo
+
+!######################################################################
+
+  subroutine wrqp
+
+    use constants
+    use channels
+    use iomod
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer           :: j,k,l,unit
+    real(dp)          :: x(ncoo),xp(ncoo)
+    logical           :: found
+    character(len=60) :: axyz
+    
+!----------------------------------------------------------------------
+! Create or clean up the sampled directory
+!----------------------------------------------------------------------
+    ! Works with ifort
+    !inquire(directory='sampled',exist=found)
+
+    ! Works with gfortran
+    inquire(file='sampled/.',exist=found)
+
+    if (found) then
+       call system('rm -rf sampled/*')
+    else
+       call system('mkdir sampled')
+    endif
+    
+!----------------------------------------------------------------------
+! Transform each sampled position and momentum vector to non-weighted
+! Cartesians and write to file    
+!----------------------------------------------------------------------
+    call freeunit(unit)
+
+    ! Loop over sampled positions and momenta
+    do j=1,nsample
+
+       ! Compute the positions and momenta in terms of Cartesian
+       ! coordinates
+       x=matmul(nmcoo,qsample(:,j))+xcoo0/ang2bohr
+       xp=matmul(nmcoo,psample(:,j))
+
+       ! Open the output file
+       write(axyz,'(a,i0,a)') 'sampled/wigner',j,'.xyz'
+       open(unit,file=axyz,form='formatted',status='unknown')
+       
+       ! Ouput the positions and momenta
+       write(unit,'(i0)') natm
+       write(unit,*)
+       do k=1,natm
+          write(unit,'(a2,6(2x,F10.7))') atlbl(k),(x(l),l=k*3-2,k*3),&
+               (xp(l),l=k*3-2,k*3)
+       enddo
+       
+       ! Close the output file
+       close(unit)
+       
+    enddo
+       
+    return
+    
+  end subroutine wrqp
   
 !######################################################################
   

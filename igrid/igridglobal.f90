@@ -35,6 +35,10 @@ module igridglobal
   integer, allocatable            :: eigindx(:)
   real(dp), allocatable           :: eigvec1d(:,:,:)
   real(dp), allocatable           :: eigval1d(:,:)
+  real(dp), allocatable           :: qexp(:)
+  real(dp), allocatable           :: qvar(:)
+  real(dp), allocatable           :: pexp(:)
+  real(dp), allocatable           :: pvar(:)
   complex(dp), allocatable        :: peigvec1d(:,:,:)
   logical                         :: eiginp
 
@@ -42,8 +46,14 @@ module igridglobal
   integer                         :: nsample
   integer, allocatable            :: qbounds(:,:)
   integer, allocatable            :: pbounds(:,:)
-  integer, parameter              :: nquad=501 ! (THIS HAS TO BE ODD!)
+  integer, parameter              :: nquad=501 ! (This has to be odd)
   real(dp), dimension(nquad)      :: qquad
   real(dp), allocatable           :: wfpp(:,:)
+  real(dp), allocatable           :: maxfw1m(:)
+  real(dp)                        :: maxfw
+
+  ! Sampled positions and momenta
+  real(dp), allocatable           :: qsample(:,:)
+  real(dp), allocatable           :: psample(:,:)
   
 end module igridglobal
