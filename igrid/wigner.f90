@@ -249,6 +249,9 @@ contains
     real(dp)           :: fw,fwnorm,rand
     logical            :: ok
 
+    character*1 cr
+    cr = char(13)
+    
 !----------------------------------------------------------------------
 ! Allocate arrays
 !----------------------------------------------------------------------
@@ -264,6 +267,10 @@ contains
     ! Loop over samples
     do j=1,nsample
 
+       ! Output our progress
+       write(*,100,advance='no') int(real(j)/nsample*100),cr
+100    format ('Sampling progress ','[ ', I0, '% ]',A)
+       
        ok=.false.
        do m=1,maxtry
 

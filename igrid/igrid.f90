@@ -833,7 +833,7 @@ contains
     
     implicit none
 
-    integer           :: j,k,l,unit
+    integer           :: j,k,l,ixyz,itot
     real(dp)          :: x(ncoo),xp(ncoo)
     logical           :: found
     character(len=60) :: axyz
@@ -857,7 +857,12 @@ contains
 ! Transform each sampled position and momentum vector to non-weighted
 ! Cartesians and write to file    
 !----------------------------------------------------------------------
-    call freeunit(unit)
+    ! Open the all.xyz file
+    call freeunit(itot)
+    open(itot,file='sampled/all.xyz',form='formatted',status='unknown')
+
+    ! Next free unit. To be used for the wigner*.xyz files
+    call freeunit(ixyz)
 
     ! Loop over sampled positions and momenta
     do j=1,nsample
@@ -869,21 +874,32 @@ contains
 
        ! Open the output file
        write(axyz,'(a,i0,a)') 'sampled/wigner',j,'.xyz'
-       open(unit,file=axyz,form='formatted',status='unknown')
-       
+       open(ixyz,file=axyz,form='formatted',status='unknown')
+
        ! Ouput the positions and momenta
-       write(unit,'(i0)') natm
-       write(unit,*)
+       write(ixyz,'(i0)') natm
+       write(ixyz,*)
        do k=1,natm
-          write(unit,'(a2,6(2x,F10.7))') atlbl(k),(x(l),l=k*3-2,k*3),&
+          write(ixyz,'(a2,6(2x,F10.7))') atlbl(k),(x(l),l=k*3-2,k*3),&
+               (xp(l),l=k*3-2,k*3)
+       enddo
+
+       ! Write to the all.xyz file
+       write(itot,'(i0)') natm
+       write(itot,*)
+       do k=1,natm
+          write(itot,'(a2,6(2x,F10.7))') atlbl(k),(x(l),l=k*3-2,k*3),&
                (xp(l),l=k*3-2,k*3)
        enddo
        
        ! Close the output file
-       close(unit)
+       close(ixyz)
        
     enddo
-       
+
+    ! Close the all.xyz file
+    close(itot)
+    
     return
     
   end subroutine wrqp
