@@ -362,7 +362,7 @@ contains
     enddo
 
 !----------------------------------------------------------------------
-! Position variances <dq> = <q^2> - <q>^2
+! Position variances <dq> = sqrt( <q^2> - <q>^2 )
 !----------------------------------------------------------------------
     ! Loop over modes
     do n=1,nmodes
@@ -379,10 +379,10 @@ contains
        q2=numer/denom
 
        ! Calculate <dq>
-       qvar(n)=q2-qexp(n)**2
-
+       qvar(n)=sqrt(q2-qexp(n)**2)
+       
     enddo
-
+    
 !----------------------------------------------------------------------
 ! Momentum expectation values <p>
 !----------------------------------------------------------------------
@@ -403,7 +403,7 @@ contains
     enddo
 
 !----------------------------------------------------------------------
-! Momentum variances <dp> = <p^2> - <p>^2
+! Momentum variances <dp> = sqrt( <p^2> - <p>^2 )
 !----------------------------------------------------------------------
     ! Loop over modes
     do n=1,nmodes
@@ -420,10 +420,10 @@ contains
        p2=numer/denom
 
        ! Calculate <dq>
-       pvar(n)=p2-pexp(n)**2
+       pvar(n)=sqrt(p2-pexp(n)**2)
 
     enddo
-    
+
     return
     
   end subroutine properties

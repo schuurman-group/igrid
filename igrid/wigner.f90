@@ -326,14 +326,14 @@ contains
     do n=1,nmodes
 
        ! Position
-       b1=qexp(n)-sqrt(2.0d0)*qvar(n)
-       b2=qexp(n)+sqrt(2.0d0)*qvar(n)
+       b1=qexp(n)-qvar(n)
+       b2=qexp(n)+qvar(n)
        call random_number(rand)
        q(n)=b1+rand*(b2-b1)
 
        ! Momentum
-       b1=pexp(n)-sqrt(2.0d0)*pvar(n)
-       b2=pexp(n)+sqrt(2.0d0)*pvar(n)
+       b1=pexp(n)-pvar(n)
+       b2=pexp(n)+pvar(n)
        call random_number(rand)
        p(n)=b1+rand*(b2-b1)
 
