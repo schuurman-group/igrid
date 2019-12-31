@@ -45,7 +45,8 @@ MKCUT = mkcut/mkcutglobal.o \
 
 IGRID = igrid/igridglobal.o \
 	igrid/spline.o \
-	igrid/wigner.o \
+	igrid/wigner_grids.o \
+	igrid/wigner_harmonic.o \
 	igrid/eigen.o \
 	igrid/interpolation.o \
 	igrid/igrid.o
@@ -81,7 +82,8 @@ OBJ_IGRID = constants.o \
 	ioqc.o \
 	igridglobal.o \
 	spline.o \
-	wigner.o \
+	wigner_grids.o \
+	wigner_harmonic.o \
 	eigen.o \
 	interpolation.o \
 	igrid.o

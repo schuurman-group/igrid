@@ -1,14 +1,14 @@
-module wigner
-
+module wigner_grid
+  
 contains
 
 !######################################################################
 
-  subroutine sample_wigner
+  subroutine sample_wigner_grids
 
     use constants
     use igridglobal
-
+    
     implicit none
 
 !----------------------------------------------------------------------
@@ -22,21 +22,21 @@ contains
 ! Get the effective grids for use in the evaluation of the 1D Wigner
 ! distribution functions
 !----------------------------------------------------------------------
-  call effective_grids
+    call effective_grids
     
 !----------------------------------------------------------------------
 ! Determine the maximum of the Wigner distribution
 !----------------------------------------------------------------------
-  call get_maxfw
+    call get_maxfw
     
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
-  call wigner_distribution
+    call wigner_distribution
     
-  return
-    
-  end subroutine sample_wigner
+    return
+  
+  end subroutine sample_wigner_grids
 
 !######################################################################
 
@@ -318,7 +318,7 @@ contains
     
     implicit none
 
-    integer  :: n,i1,i2
+    integer  :: n
     real(dp) :: q(nmodes),p(nmodes)
     real(dp) :: rand
     real(dp) :: b1,b2
@@ -509,4 +509,4 @@ contains
     
 !######################################################################
   
-end module wigner
+end module wigner_grid

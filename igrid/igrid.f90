@@ -9,15 +9,16 @@
 !        1D eigenfunctions are calculated using the Fourier grid
 !        Hamiltonian (FGH) method of Balint-Kurti [J. Chem. Phys., 91,
 !        3571 (1989)].
+!
+!        If desired, the Wigner distribution can also be sampled
+!        within the harmonic approximation.
 !######################################################################
 
 program igrid
 
   use channels
   use ioqc
-  use eigenmod
-  use interpolation
-  use wigner
+  use wigner_harmonic
   use igridglobal
   
   implicit none
@@ -74,7 +75,7 @@ program igrid
 !----------------------------------------------------------------------
   if (harmonic) then
      ! Harmonic approximation
-     call sample_harmonic
+     call sample_wigner_harmonic
   else
      ! Grid-based sampling
      call sample_grids
@@ -377,30 +378,13 @@ contains
 
 !######################################################################
 
-  subroutine sample_harmonic
-
-    use channels
-    use ioqc
-    use igridglobal
-    
-    implicit none
-
-    print*,"HERE"
-    stop
-    
-    return
-    
-  end subroutine sample_harmonic
-
-!######################################################################
-
   subroutine sample_grids
 
     use channels
     use ioqc
     use eigenmod
     use interpolation
-    use wigner
+    use wigner_grid
     use igridglobal
   
     implicit none
@@ -453,7 +437,7 @@ contains
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
-    call sample_wigner
+    call sample_wigner_grids
     
     return
   
