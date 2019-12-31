@@ -244,7 +244,7 @@ contains
     implicit none
 
     integer            :: j,m,n
-    integer, parameter :: maxtry=50000
+    integer, parameter :: maxtry=75000
     real(dp)           :: q(nmodes),p(nmodes)
     real(dp)           :: fw,fwnorm,rand
     logical            :: ok
@@ -268,8 +268,8 @@ contains
     do j=1,nsample
 
        ! Output our progress
-       write(*,100,advance='no') int(real(j)/nsample*100),cr
-100    format ('Sampling progress ','[ ', I0, '% ]',A)
+       write(*,100,advance='no') int(real(j-1)/nsample*100),cr
+100    format ('Sampling progress ','[ ', i0, '% ]',a)
        
        ok=.false.
        do m=1,maxtry
@@ -325,15 +325,15 @@ contains
     
     do n=1,nmodes
 
-       ! Position
-       b1=qexp(n)-qvar(n)
-       b2=qexp(n)+qvar(n)
+       ! Position vector
+       b1=qexp(n)-qstd(n)
+       b2=qexp(n)+qstd(n)
        call random_number(rand)
        q(n)=b1+rand*(b2-b1)
 
-       ! Momentum
-       b1=pexp(n)-pvar(n)
-       b2=pexp(n)+pvar(n)
+       ! Momentum vector
+       b1=pexp(n)-pstd(n)
+       b2=pexp(n)+pstd(n)
        call random_number(rand)
        p(n)=b1+rand*(b2-b1)
 

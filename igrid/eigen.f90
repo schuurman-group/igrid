@@ -334,13 +334,13 @@ contains
 ! Allocate arrays
 !----------------------------------------------------------------------
     allocate(qexp(nmodes))
-    allocate(qvar(nmodes))
+    allocate(qstd(nmodes))
     allocate(pexp(nmodes))
-    allocate(pvar(nmodes))
+    allocate(pstd(nmodes))
     qexp=0.0d0
-    qvar=0.0d0
+    qstd=0.0d0
     pexp=0.0d0
-    pvar=0.0d0
+    pstd=0.0d0
     
 !----------------------------------------------------------------------
 ! Position expectation values <q>
@@ -362,7 +362,7 @@ contains
     enddo
 
 !----------------------------------------------------------------------
-! Position variances <dq> = sqrt( <q^2> - <q>^2 )
+! Position standard deviations <dq> = sqrt( <q^2> - <q>^2 )
 !----------------------------------------------------------------------
     ! Loop over modes
     do n=1,nmodes
@@ -379,7 +379,7 @@ contains
        q2=numer/denom
 
        ! Calculate <dq>
-       qvar(n)=sqrt(q2-qexp(n)**2)
+       qstd(n)=sqrt(q2-qexp(n)**2)
        
     enddo
     
@@ -403,7 +403,7 @@ contains
     enddo
 
 !----------------------------------------------------------------------
-! Momentum variances <dp> = sqrt( <p^2> - <p>^2 )
+! Momentum standard deviations <dp> = sqrt( <p^2> - <p>^2 )
 !----------------------------------------------------------------------
     ! Loop over modes
     do n=1,nmodes
@@ -420,7 +420,7 @@ contains
        p2=numer/denom
 
        ! Calculate <dq>
-       pvar(n)=sqrt(p2-pexp(n)**2)
+       pstd(n)=sqrt(p2-pexp(n)**2)
 
     enddo
 

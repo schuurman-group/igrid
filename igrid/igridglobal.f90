@@ -36,9 +36,9 @@ module igridglobal
   real(dp), allocatable           :: eigvec1d(:,:,:)
   real(dp), allocatable           :: eigval1d(:,:)
   real(dp), allocatable           :: qexp(:)
-  real(dp), allocatable           :: qvar(:)
+  real(dp), allocatable           :: qstd(:)
   real(dp), allocatable           :: pexp(:)
-  real(dp), allocatable           :: pvar(:)
+  real(dp), allocatable           :: pstd(:)
   complex(dp), allocatable        :: peigvec1d(:,:,:)
   logical                         :: eiginp
 
@@ -51,7 +51,8 @@ module igridglobal
   real(dp), allocatable           :: wfpp(:,:)
   real(dp), allocatable           :: maxfw1m(:)
   real(dp)                        :: maxfw
-
+  logical                         :: harmonic
+  
   ! Sampled positions and momenta
   real(dp), allocatable           :: qsample(:,:)
   real(dp), allocatable           :: psample(:,:)

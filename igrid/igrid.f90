@@ -36,7 +36,7 @@ program igrid
 ! Read the input file
 !----------------------------------------------------------------------
   call read_input_igrid
-
+  
 !----------------------------------------------------------------------
 ! Determine the normal mode file type
 !----------------------------------------------------------------------
@@ -69,55 +69,17 @@ program igrid
   call nm2xmat
 
 !----------------------------------------------------------------------
-! Read the names of the quantum chemistry output files
+! From here, the code branches depending on whether the Harmonic
+! approximation or the use of 1D grids is being made  
 !----------------------------------------------------------------------
-  call rdqcfilenames
-
-!----------------------------------------------------------------------
-! Determine the quantum chemistry calculation type.
-! Note that we are assuming here that the same level of theory was
-! used for all points, but that we are not checking this...
-!----------------------------------------------------------------------
-  call entype(qctyp,qcfiles(1)) 
-  write(ilog,'(/,a)') 'Quantum chemistry method: '&
-       //trim(entype_string(qctyp))
-  
-!----------------------------------------------------------------------
-! Parse the quantum chemistry output files
-!----------------------------------------------------------------------
-  call parse_qcfiles
-
-!----------------------------------------------------------------------
-! Parse the eigenfunction indices in the input file
-!----------------------------------------------------------------------
-  call parse_initwf
-
-!----------------------------------------------------------------------
-! Output some information about the grids to the log file
-!----------------------------------------------------------------------
-  call wrgridinfo
-  
-!----------------------------------------------------------------------
-! If necessary, interpolate the 1D potentials
-!----------------------------------------------------------------------
-  if (interpolate) call interpolate_potentials
-
-!----------------------------------------------------------------------
-! Fill in the grid spacing array, dQ, now that we have done with the
-! modification of the grids
-!----------------------------------------------------------------------
-  call get_dq
-  
-!----------------------------------------------------------------------
-! Calculate the eigenfunctions of the 1D Hamiltonians
-!----------------------------------------------------------------------
-  call eigen1d
-  
-!----------------------------------------------------------------------
-! Sample the Wigner distribution
-!----------------------------------------------------------------------
-  call sample_wigner
-
+  if (harmonic) then
+     ! Harmonic approximation
+     call sample_harmonic
+  else
+     ! Grid-based sampling
+     call sample_grids
+  end if
+     
 !----------------------------------------------------------------------
 ! Output the sampled positions and moments
 !----------------------------------------------------------------------
@@ -237,6 +199,9 @@ contains
 
     ! Number of initial conditions to be sampled
     nsample=0
+
+    ! Harmonic approximation
+    harmonic=.false.
     
 !----------------------------------------------------------------------
 ! Read the input file
@@ -288,6 +253,9 @@ contains
           else
              goto 100
           endif
+
+       else if (keyword(i).eq.'$harmonic') then
+          harmonic=.true.
           
        else
           ! Exit if the keyword is not recognised
@@ -406,7 +374,91 @@ contains
     return
     
   end subroutine parse_initwf
+
+!######################################################################
+
+  subroutine sample_harmonic
+
+    use channels
+    use ioqc
+    use igridglobal
+    
+    implicit none
+
+    print*,"HERE"
+    stop
+    
+    return
+    
+  end subroutine sample_harmonic
+
+!######################################################################
+
+  subroutine sample_grids
+
+    use channels
+    use ioqc
+    use eigenmod
+    use interpolation
+    use wigner
+    use igridglobal
   
+    implicit none
+
+!----------------------------------------------------------------------
+! Read the names of the quantum chemistry output files
+!----------------------------------------------------------------------
+    call rdqcfilenames
+
+!----------------------------------------------------------------------
+! Determine the quantum chemistry calculation type.
+! Note that we are assuming here that the same level of theory was
+! used for all points, but that we are not checking this...
+!----------------------------------------------------------------------
+    call entype(qctyp,qcfiles(1)) 
+    write(ilog,'(/,a)') 'Quantum chemistry method: '&
+         //trim(entype_string(qctyp))
+  
+!----------------------------------------------------------------------
+! Parse the quantum chemistry output files
+!----------------------------------------------------------------------
+    call parse_qcfiles
+
+!----------------------------------------------------------------------
+! Parse the eigenfunction indices in the input file
+!----------------------------------------------------------------------
+    call parse_initwf
+
+!----------------------------------------------------------------------
+! Output some information about the grids to the log file
+!----------------------------------------------------------------------
+    call wrgridinfo
+  
+!----------------------------------------------------------------------
+! If necessary, interpolate the 1D potentials
+!----------------------------------------------------------------------
+    if (interpolate) call interpolate_potentials
+
+!----------------------------------------------------------------------
+! Fill in the grid spacing array, dQ, now that we have done with the
+! modification of the grids
+!----------------------------------------------------------------------
+    call get_dq
+  
+!----------------------------------------------------------------------
+! Calculate the eigenfunctions of the 1D Hamiltonians
+!----------------------------------------------------------------------
+    call eigen1d
+  
+!----------------------------------------------------------------------
+! Sample the Wigner distribution
+!----------------------------------------------------------------------
+    call sample_wigner
+    
+    return
+  
+  end subroutine sample_grids
+    
 !######################################################################
 
   subroutine rdqcfilenames
