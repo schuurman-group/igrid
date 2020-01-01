@@ -136,7 +136,7 @@ contains
     do n=1,nmodes
        maxfw=maxfw*maxfw1m(n)
     enddo
-
+    
     return
     
   end subroutine get_maxfw
@@ -260,7 +260,7 @@ contains
 
     allocate(psample(nmodes,nsample))
     psample=0.0d0
-    
+
 !----------------------------------------------------------------------
 ! Sample the Wigner distribution
 !----------------------------------------------------------------------
@@ -490,18 +490,25 @@ contains
        s=qquad(ip)-q
        
        ! Contribution to W(q,p)
-       wqp=wqp+cos(2.0d0*s*p)*psi1*psi2
-
+       if (i.eq.0.or.i.eq.(nquad-1)/2) then
+          wqp=wqp+0.5d0*cos(2.0d0*s*p)*psi1*psi2
+       else
+          wqp=wqp+cos(2.0d0*s*p)*psi1*psi2
+       endif
+          
     enddo
     
 !----------------------------------------------------------------------
 ! Prefactors
 !----------------------------------------------------------------------
-    ! 1/pi prefactor in W(q,p)
+    ! 1/pi
     wqp=wqp/pi
 
-    ! Multiplication by the quadrature point spacing
-    wqp=wqp*ds*2.0d0
+    ! Quadrature grid spacing
+    wqp=wqp*ds
+
+    ! x2 prefactor
+    wqp=wqp*2.0d0
 
     return
     

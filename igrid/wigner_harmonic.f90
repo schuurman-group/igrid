@@ -144,7 +144,7 @@ contains
     do n=1,nmodes
 
        ! Calculate the contribution from the current mode
-       fw1m=exp(-q(n)**2/4)*exp(-p(n)**2/4)
+       fw1m=exp(-q(n)**2)*exp(-p(n)**2)
 
        ! Accumulate the result
        fwnorm=fwnorm*fw1m
