@@ -178,9 +178,9 @@ contains
     
 !----------------------------------------------------------------------
 ! Determine the bounds of the effective grids that will be used in
-! the position and momentum sampling. Here, we will discard the grid
-! points at the edges for which the grid populations are vanishingly
-! small
+! the evaluation of the Wigner distribution function. Here, we will
+! discard the grid points at the edges for which the grid populations
+! are vanishingly small
 !----------------------------------------------------------------------
     ! Loop over modes
     do n=1,nmodes

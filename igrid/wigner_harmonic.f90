@@ -54,7 +54,7 @@ contains
           ! Note that here we are calculating the *normalised*
           ! Wigner distribution function value
           call calc_wigner_harmonic(q,p,fwnorm)
-
+          
           ! Accept or reject the current phase space vector
           call random_number(rand)
           if (rand.lt.fwnorm) then

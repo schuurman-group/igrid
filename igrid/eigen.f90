@@ -128,6 +128,13 @@ contains
        hmat(i,i)=pot(i,m)
     enddo
 
+!    ! CHECK
+!    omega=freq(m)/eh2ev
+!    do i=1,dim
+!       hmat(i,i)=0.5d0*omega*qgrid(i,m)**2
+!    enddo
+!    ! CHECK
+    
 !----------------------------------------------------------------------
 ! Kinetic energy operator contribution
 !----------------------------------------------------------------------
@@ -301,13 +308,6 @@ contains
           peigvec1d(:,k,n)=matmul(F,eigvec1d(:,k,n))
        enddo
 
-!       ! Include the dk factor in the momentum representation
-!       ! eigenstates
-!       do k=1,np
-!          peigvec1d(:,k,n)=peigvec1d(:,k,n)&
-!               /sqrt(dot_product(peigvec1d(:,k,n),peigvec1d(:,k,n)))
-!       enddo
-       
        ! Deallocate the transformation matrix F
        deallocate(F)
        
@@ -559,8 +559,8 @@ contains
     write(ilog,'(34a)') ('-',k=1,34)
 
     do n=1,nmodes
-       first=abs(eigvec1d(1,eigindx(n),n))
-       last=abs(eigvec1d(npnts(n),eigindx(n),n))
+       first=eigvec1d(1,eigindx(n),n)**2
+       last=eigvec1d(npnts(n),eigindx(n),n)**2
        write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
             n,'|',first,'|',last
     enddo
@@ -577,8 +577,10 @@ contains
     write(ilog,'(34a)') ('-',k=1,34)
 
     do n=1,nmodes
-       first=abs(peigvec1d(1,eigindx(n),n))
-       last=abs(peigvec1d(npnts(n),eigindx(n),n))
+       first=conjg(peigvec1d(1,eigindx(n),n))&
+            *peigvec1d(1,eigindx(n),n)
+       last=conjg(peigvec1d(npnts(n),eigindx(n),n))&
+            *peigvec1d(npnts(n),eigindx(n),n)
        write(ilog,'(x,i3,2x,a,x,ES11.4,x,a,x,ES11.4)') &
             n,'|',first,'|',last
     enddo
