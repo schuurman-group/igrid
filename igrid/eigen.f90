@@ -128,13 +128,6 @@ contains
        hmat(i,i)=pot(i,m)
     enddo
 
-!    ! CHECK
-!    omega=freq(m)/eh2ev
-!    do i=1,dim
-!       hmat(i,i)=0.5d0*omega*qgrid(i,m)**2
-!    enddo
-!    ! CHECK
-    
 !----------------------------------------------------------------------
 ! Kinetic energy operator contribution
 !----------------------------------------------------------------------
@@ -298,7 +291,7 @@ contains
           il=0
           do l=-nk,nk
              il=il+1
-             F(il,i)=exp(-ci*2.0d0*pi*i*l/(np-1))
+             F(il,i)=exp(-ci*2.0d0*pi*i*l/np)
           enddo
        enddo
 
@@ -380,9 +373,9 @@ contains
 
        ! Calculate <dq>
        qstd(n)=sqrt(q2-qexp(n)**2)
-       
+
     enddo
-    
+
 !----------------------------------------------------------------------
 ! Momentum expectation values <p>
 !----------------------------------------------------------------------
@@ -395,8 +388,9 @@ contains
        numer=0.0d0
        denom=0.0d0
        do i=1,npnts(n)
-          numer=numer+pgrid(i,n)*peigvec1d(i,indx,n)**2
-          denom=denom+peigvec1d(i,indx,n)**2
+          numer=numer+pgrid(i,n) &
+               *conjg(peigvec1d(i,indx,n))*peigvec1d(i,indx,n)
+          denom=denom+conjg(peigvec1d(i,indx,n))*peigvec1d(i,indx,n)
        enddo
        pexp(n)=numer/denom
 
@@ -414,8 +408,9 @@ contains
        numer=0.0d0
        denom=0.0d0
        do i=1,npnts(n)
-          numer=numer+pgrid(i,n)**2*peigvec1d(i,indx,n)**2
-          denom=denom+peigvec1d(i,indx,n)**2
+          numer=numer+pgrid(i,n)**2 &
+               *conjg(peigvec1d(i,indx,n))*peigvec1d(i,indx,n)
+          denom=denom+conjg(peigvec1d(i,indx,n))*peigvec1d(i,indx,n)
        enddo
        p2=numer/denom
 
