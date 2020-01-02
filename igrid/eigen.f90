@@ -60,6 +60,11 @@ contains
 ! Ouput the first and last grid populations
 !----------------------------------------------------------------------
     call wrgridpop
+
+!----------------------------------------------------------------------
+! Output the <q>, <dq>, <p> and <dp> values
+!----------------------------------------------------------------------
+    call wrprop
     
     return
 
@@ -592,6 +597,51 @@ contains
     return
     
   end subroutine wrgridpop
+
+!######################################################################
+
+  subroutine wrprop
+
+    use constants
+    use channels
+    use sysinfo
+    use igridglobal
+    
+    implicit none
+
+    integer :: k,n
+    
+!----------------------------------------------------------------------
+! Position representation
+!----------------------------------------------------------------------
+    write(ilog,'(/,27a)') ('-',k=1,27)
+    write(ilog,'(a)') ' Mode |   <q>   |   <dq>'
+    write(ilog,'(27a)') ('-',k=1,27)
+
+    do n=1,nmodes
+       write(ilog,'(x,i3,2x,a,x,F7.4,x,a,x,F7.4)') &
+            n,'|',qexp(n),'|',qstd(n)
+    enddo
+    
+    write(ilog,'(27a)') ('-',k=1,27)
+
+!----------------------------------------------------------------------
+! Momentum representation
+!----------------------------------------------------------------------
+    write(ilog,'(/,27a)') ('-',k=1,27)
+    write(ilog,'(a)') ' Mode |   <p>   |   <dp>'
+    write(ilog,'(27a)') ('-',k=1,27)
+
+    do n=1,nmodes
+       write(ilog,'(x,i3,2x,a,x,F7.4,x,a,x,F7.4)') &
+            n,'|',pexp(n),'|',pstd(n)
+    enddo
+    
+    write(ilog,'(27a)') ('-',k=1,27)
+    
+    return
+    
+  end subroutine wrprop
     
 !######################################################################
   

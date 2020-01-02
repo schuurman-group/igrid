@@ -19,10 +19,19 @@ program igrid
   use channels
   use ioqc
   use wigner_harmonic
+  use timingmod
   use igridglobal
   
   implicit none
 
+  integer  :: k
+  real(dp) :: tw1,tw2,tc1,tc2
+
+!----------------------------------------------------------------------
+! Start timing
+!----------------------------------------------------------------------
+  call times(tw1,tw2)
+  
 !----------------------------------------------------------------------
 ! Open the input and log files
 !----------------------------------------------------------------------
@@ -85,6 +94,16 @@ program igrid
 ! Output the sampled positions and moments
 !----------------------------------------------------------------------
   call wrqp
+
+!----------------------------------------------------------------------
+! Stop timing and output times
+!----------------------------------------------------------------------
+  call times(tw2,tc2)
+
+  write(ilog,'(/,37a)') ('+',k=1,37)
+  write(ilog,'(2x,a,F7.2,x,a)') 'Wall time:',tw2-tw1,'s'
+  write(ilog,'(2x,a,F7.2,x,a)') 'CPU time: ',tc2-tc1,'s'
+  write(ilog,'(37a)') ('+',k=1,37)
   
 contains
 
