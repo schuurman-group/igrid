@@ -128,6 +128,13 @@ contains
        hmat(i,i)=pot(i,m)
     enddo
 
+!    ! CHECK
+!    omega=freq(m)/eh2ev
+!    do i=1,dim
+!       hmat(i,i)=0.5d0*omega*qgrid(i,m)**2
+!    enddo
+!    ! CHECK
+    
 !----------------------------------------------------------------------
 ! Kinetic energy operator contribution
 !----------------------------------------------------------------------

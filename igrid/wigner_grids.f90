@@ -243,10 +243,10 @@ contains
     
     implicit none
 
-    integer            :: j,m,n
+    integer            :: j,k,m,n,iq1,iq2,ip1,ip2
     integer, parameter :: maxtry=75000
     real(dp)           :: q(nmodes),p(nmodes)
-    real(dp)           :: fw,fwnorm,rand
+    real(dp)           :: fw,fwnorm,rand,qb1,qb2,pb1,pb2
     logical            :: ok
 
     character*1 cr
@@ -270,38 +270,56 @@ contains
        ! Output our progress
        write(*,100,advance='no') int(real(j-1)/nsample*100),cr
 100    format ('Sampling progress ','[ ', i0, '% ]',a)
-       
-       ok=.false.
-       do m=1,maxtry
 
-          ! Random position and momentum vectors
-          call qp_rand(q,p)
+       ! Loop over modes
+       do n=1,nmodes
 
-          ! Calculate the Wigner distribution value at the
-          ! current point in phase space
-          call calc_wigner(q,p,fw)
-          
-          ! Accept or reject the current phase space vector
-          fwnorm=fw/maxfw
-          call random_number(rand)
-          if (rand.lt.fwnorm) then
-             ok=.true.
-             exit
+          ! Sampling bounds
+          iq1=qbounds(1,n)
+          iq2=qbounds(2,n)
+          ip1=pbounds(1,n)
+          ip2=pbounds(2,n)
+          qb1=qgrid(iq1,n)
+          qb2=qgrid(iq2,n)
+          pb1=pgrid(ip1,n)
+          pb2=pgrid(ip2,n)
+
+          ok=.false.
+          do k=1,maxtry
+
+             ! Random position and momentum 
+             call random_number(rand)
+             q(n)=qb1+rand*(qb2-qb1)
+             call random_number(rand)
+             p(n)=pb1+rand*(pb2-pb1)
+             
+             ! Calculate the Wigner distribution value at the
+             ! current point in phase space
+             call calc_wigner_1mode(n,q(n),p(n),fw)
+
+             ! Accept or reject the current phase space vector
+             fwnorm=fw/maxfw1m(n)
+             call random_number(rand)
+             if (rand.lt.fwnorm) then
+                ok=.true.
+                exit
+             endif
+             
+          enddo
+
+          ! Exit here if the sampling was not successful
+          if (.not.ok) then
+             errmsg='Unsuccessful sampling in subroutine &
+                  wigner_distribution. Quitting.'
+             call error_control
           endif
           
        enddo
 
-       ! Exit here if the sampling was not successful
-       if (.not.ok) then
-          errmsg='Unsuccessful sampling in subroutine &
-               wigner_distribution. Quitting.'
-          call error_control
-       endif
-
        ! Save the sampled position and momentum vector
        qsample(:,j)=q
        psample(:,j)=p
-       
+
     enddo
 
     return
